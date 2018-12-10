@@ -5,8 +5,8 @@ including AND, OR, NAND, and XOR.
 By: Zoran M
 */
 int gatevalue; //Declare all of the variables
-int inputPin = 4;
-int Output1Pin = 1;
+int inputPin = 5;
+int Output1Pin = 4;
 int Output2Pin = 3;
 int led = 8;
 int led2 = 12;
@@ -29,7 +29,7 @@ void setup() {
 }
 
 void loop() {
- gatevalue = gatevalue + (check_Gate(false, false) * 8); //When an input is HIGH it will add a value to the gatevalue
+  gatevalue = gatevalue + (check_Gate(false, false) * 8); //When an input is HIGH it will add a value to the gatevalue
   gatevalue = gatevalue + (check_Gate(false, true) * 4); //and each gate will have a different gatevalue.
   gatevalue = gatevalue + (check_Gate(true, false) * 2);
   gatevalue = gatevalue + (check_Gate(true, true) * 1);
@@ -38,10 +38,10 @@ void loop() {
     case 1:
       Serial.println("The gate is an AND gate."); //When gatevalue is 1 it is an AND gate
       digitalWrite(led, LOW); //if gate is in, light is off
-      digitalWrite(led2, HIGH); // AND gate truth table outputs are 0, 0, 0, 1 which is how the LED’s are set up
-      digitalWrite(led3, HIGH);
-      digitalWrite(led4, HIGH);
-      digitalWrite(led5, LOW);
+      digitalWrite(led2, LOW); // AND gate truth table outputs are 0, 0, 0, 1 which is how the LED’s are set up
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, HIGH);
       break;
     case 6:
       Serial.println("The gate is an XOR gate.");
@@ -62,10 +62,10 @@ void loop() {
     case 8:
       Serial.println("The gate is an OR gate.");
       digitalWrite(led, LOW); //if gate is in, light is off
-      digitalWrite(led2, HIGH); //Truth table values
-      digitalWrite(led3, LOW);
-      digitalWrite(led4, LOW);
-      digitalWrite(led5, LOW);
+      digitalWrite(led2, LOW); //Truth table values
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
       break;
     case 14:
       Serial.println("The gate is an NAND gate.");
@@ -77,11 +77,11 @@ void loop() {
       break;
     default:
       Serial.println("ERROR: Gate Not Present.");
-      digitalWrite(led, LOW); //if gate is not in, light is on
-      digitalWrite(led2, HIGH);
-      digitalWrite(led3, HIGH);
-      digitalWrite(led4, HIGH);
-      digitalWrite(led5, HIGH);
+      digitalWrite(led, HIGH); //if gate is not in, light is on
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
   }
   gatevalue = 0;
   delay(1000);
