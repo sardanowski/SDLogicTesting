@@ -21,8 +21,8 @@ void CMOSinputPins(int gate = 8);
 
 int invert = 0;
 int gateNumber = invert ? 6 : 4; //Used for the number of gates being tested
-int inPin[16];
-int outPin[16];
+int inPin[14];
+int outPin[14];
 
 void setup() {
   // put your setup code here, to run once:
@@ -33,7 +33,6 @@ void setup() {
   //I2C
   Serial.begin(9600);
   mcp.begin();
-  resetPins();
   TTLinputPins();
 
 }
@@ -75,6 +74,7 @@ void resetPins() {
 }
 
 void TTLinputPins(int gatevalue) {
+  resetPins();
   switch (gatevalue) {
     case 0://NOT
 
@@ -101,6 +101,7 @@ void TTLinputPins(int gatevalue) {
 }
 
 void CMOSinputPins(int gatevalue) {
+  resetPins();
   switch (gatevalue) {
     case 0://NOT
 

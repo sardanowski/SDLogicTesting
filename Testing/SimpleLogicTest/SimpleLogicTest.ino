@@ -60,12 +60,12 @@ void loop() {
       digitalWrite(led5, HIGH);
       break;
     case 8:
-      Serial.println("The gate is an OR gate.");
+      Serial.println("The gate is an NOR gate.");
       digitalWrite(led, LOW); //if gate is in, light is off
-      digitalWrite(led2, LOW); //Truth table values
-      digitalWrite(led3, HIGH);
-      digitalWrite(led4, HIGH);
-      digitalWrite(led5, HIGH);
+      digitalWrite(led2, HIGH); //Truth table values
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
       break;
     case 14:
       Serial.println("The gate is an NAND gate.");
