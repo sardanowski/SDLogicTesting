@@ -8,11 +8,11 @@ int gatevalue; //Declare all of the variables
 int inputPin = 5;
 int Output1Pin = 4;
 int Output2Pin = 3;
-int led = 8;
-int led2 = 12;
-int led3 = 11;
-int led4 = 10;
-int led5 = 9;
+int gateLED = 8;
+int led00 = 12;
+int led01 = 11;
+int led10 = 10;
+int led11 = 9;
 
 void setup() {
   // put your setup code here, to run once:
@@ -20,11 +20,11 @@ void setup() {
   pinMode(Output1Pin, OUTPUT);
   pinMode(Output2Pin, OUTPUT);
   pinMode(inputPin, INPUT);
-  pinMode(led, OUTPUT);
-  pinMode(led2, OUTPUT);
-  pinMode(led3, OUTPUT);
-  pinMode(led4, OUTPUT);
-  pinMode(led5, OUTPUT);
+  pinMode(gateLED, OUTPUT);
+  pinMode(led00, OUTPUT);
+  pinMode(led01, OUTPUT);
+  pinMode(led10, OUTPUT);
+  pinMode(led11, OUTPUT);
   gatevalue = 0;
 }
 
@@ -36,52 +36,47 @@ void loop() {
 
   switch (gatevalue) {
     case 1:
-      Serial.println("The gate is an AND gate."); //When gatevalue is 1 it is an AND gate
-      digitalWrite(led, LOW); //if gate is in, light is off
-      digitalWrite(led2, LOW); // AND gate truth table outputs are 0, 0, 0, 1 which is how the LED’s are set up
-      digitalWrite(led3, LOW);
-      digitalWrite(led4, LOW);
-      digitalWrite(led5, HIGH);
-      break;
-    case 6:
-      Serial.println("The gate is an XOR gate.");
-      digitalWrite(led, LOW); //if gate is in, light is off
-      digitalWrite(led2, LOW);//Truth table values
-      digitalWrite(led3, HIGH);
-      digitalWrite(led4, HIGH);
-      digitalWrite(led5, LOW);
+      //When gatevalue is 1 it is an AND gate
+      Serial.write("This is an AND gate");
+      digitalWrite(gateLED, LOW); //if gate is in, light is off
+      digitalWrite(led00, LOW); // AND gate truth table outputs are 0, 0, 0, 1 which is how the LED’s are set up
+      digitalWrite(led01, LOW);
+      digitalWrite(led10, LOW);
+      digitalWrite(led11, HIGH);
       break;
     case 7:
-      Serial.println("The gate is an OR gate.");
-      digitalWrite(led, LOW); //if gate is in, light is off
-      digitalWrite(led2, LOW); //Truth table values
-      digitalWrite(led3, HIGH);
-      digitalWrite(led4, HIGH);
-      digitalWrite(led5, HIGH);
+    //When gatevalue is 7 it is an OR gate
+    Serial.print("This is an OR gate");
+      digitalWrite(gateLED, LOW); //if gate is in, light is off
+      digitalWrite(led00, LOW); //Truth table values
+      digitalWrite(led01, HIGH);
+      digitalWrite(led10, HIGH);
+      digitalWrite(led11, HIGH);
       break;
     case 8:
-      Serial.println("The gate is an NOR gate.");
-      digitalWrite(led, LOW); //if gate is in, light is off
-      digitalWrite(led2, HIGH); //Truth table values
-      digitalWrite(led3, LOW);
-      digitalWrite(led4, LOW);
-      digitalWrite(led5, LOW);
+    //When gatevalue is 8 it is an NOR gate
+    Serial.write("This is a NOR gate");
+      digitalWrite(gateLED, LOW); //if gate is in, light is off
+      digitalWrite(led00, HIGH); //Truth table values
+      digitalWrite(led01, LOW);
+      digitalWrite(led10, LOW);
+      digitalWrite(led11, LOW);
       break;
     case 14:
-      Serial.println("The gate is an NAND gate.");
-      digitalWrite(led, LOW); //if gate is in, light is off
-      digitalWrite(led2, HIGH); //Truth table values
-      digitalWrite(led3, HIGH);
-      digitalWrite(led4, HIGH);
-      digitalWrite(led5, LOW);
+    //When gatevalue is 14 it is an NAND gate
+      digitalWrite(gateLED, LOW); //if gate is in, light is off
+      digitalWrite(led00, HIGH); //Truth table values
+      digitalWrite(led01, HIGH);
+      digitalWrite(led10, HIGH);
+      digitalWrite(led11, LOW);
       break;
     default:
-      Serial.println("ERROR: Gate Not Present.");
-      digitalWrite(led, HIGH); //if gate is not in, light is on
-      digitalWrite(led2, LOW);
-      digitalWrite(led3, LOW);
-      digitalWrite(led4, LOW);
-      digitalWrite(led5, LOW);
+      Serial.write("ERROR: Gate Not Present.");
+      digitalWrite(gateLED, HIGH); //if gate is not in, light is on
+      digitalWrite(led00, LOW);
+      digitalWrite(led01, LOW);
+      digitalWrite(led10, LOW);
+      digitalWrite(led11, LOW);
   }
   gatevalue = 0;
   delay(1000);
