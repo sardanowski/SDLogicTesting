@@ -1,9 +1,3 @@
-/* 
-Design a circuit and write a test program, using the Arduino Nano,
-that will test two input Transistor-Transistor Logic (TTL) gates
-including AND, OR, NAND, and XOR.
-By: Zoran M
-*/
 int gatevalue; //Declare all of the variables
 int inputPin = 5;
 int Output1Pin = 4;
@@ -45,8 +39,8 @@ void loop() {
       digitalWrite(led11, HIGH);
       break;
     case 7:
-    //When gatevalue is 7 it is an OR gate
-    Serial.print("This is an OR gate");
+      //When gatevalue is 7 it is an OR gate
+      Serial.print("This is an OR gate");
       digitalWrite(gateLED, LOW); //if gate is in, light is off
       digitalWrite(led00, LOW); //Truth table values
       digitalWrite(led01, HIGH);
@@ -54,8 +48,8 @@ void loop() {
       digitalWrite(led11, HIGH);
       break;
     case 8:
-    //When gatevalue is 8 it is an NOR gate
-    Serial.write("This is a NOR gate");
+      //When gatevalue is 8 it is an NOR gate
+      Serial.write("This is a NOR gate");
       digitalWrite(gateLED, LOW); //if gate is in, light is off
       digitalWrite(led00, HIGH); //Truth table values
       digitalWrite(led01, LOW);
@@ -63,7 +57,8 @@ void loop() {
       digitalWrite(led11, LOW);
       break;
     case 14:
-    //When gatevalue is 14 it is an NAND gate
+      //When gatevalue is 14 it is an NAND gate
+      Serial.write("This is a NAND gate");
       digitalWrite(gateLED, LOW); //if gate is in, light is off
       digitalWrite(led00, HIGH); //Truth table values
       digitalWrite(led01, HIGH);
