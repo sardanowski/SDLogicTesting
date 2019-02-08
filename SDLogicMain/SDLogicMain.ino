@@ -21,9 +21,21 @@ void CMOSinputPins(int gate = 8);
 
 int invert = 0;
 int gateNumber = invert ? 6 : 4; //Used for the number of gates being tested
-int inPin[14];
-int outPin[14];
+int inPin[16];
+int outPin[16];
 int gateType;
+
+int tempIN1[] = {1,3,5,10,12,14};
+int tempOUT1[] = {0,2,4,11,13,15};
+
+int tempIN2[] = {0,3,12,15};
+int tempOUT2[] = {1,2,4,5,10,11,13,14};
+
+int tempIN3[] = {2,5,10,13};
+int tempOUT3[] = {0,1,3,4,11,12,14,15};
+
+int tempIN4[] = {2,3,12,13};
+int tempOUT4[] = {0,1,4,5,10,11,14,15};
 
 
 void setup() {
@@ -47,14 +59,18 @@ void loop() {
 bool test(int gateNumber) {
   int out1, out2, testresults;
   int testNumber; //number to multiply to truth table values to get unique test results
-  int gate = gateNumber;
+  int gate = 0;
   bool passFail;
-  for (gate; gate > 0; gate--) {
+  int pinout1, pinout2, pinIn;
+  for (gate; gate < gateNumber; gate++) {
     testNumber = 8;
+    pinout1 = outPin[gate*2];
+    pinout2 = outPin[gate*2 + 1];
+    pinIn = inPin[gate];
 //    if(!invert){ //testing Inverter more complicated
     for (out1 = 1; out1 >= 0; out1--) {
       for (out2 = 1; out2 >= 0; out1--) {
-        testresults = testresults + (check_Gate(out1, out2,0,1) * testNumber); //probably need to send gate pin numbers.
+        testresults = testresults + (check_Gate(out1, out2,pinout1,pinout2,pinIn) * testNumber); //probably need to send gate pin numbers.
         testNumber / 2;
       }
     }
@@ -73,7 +89,7 @@ bool test(int gateNumber) {
   return passFail;
 }
 
-int check_Gate(int output1, int output2, int outpin1, int outpin2) 
+int check_Gate(int output1, int output2, int outpin1, int outpin2, int input1) 
 //checking what the output is when giving inputs
 {
   int x, y;
@@ -83,7 +99,7 @@ int check_Gate(int output1, int output2, int outpin1, int outpin2)
   //check for shorts here complicated
   
   delay(5); // Make sure the signal has time to propogate through the gate.
-  x = mcp.digitalRead(2);
+  x = mcp.digitalRead(input1);
 
   return x;
 }
@@ -91,8 +107,9 @@ int check_Gate(int output1, int output2, int outpin1, int outpin2)
 void resetPins() {
   for (int x = 0; x < 16; x++) {
     mcp.pinMode(x, OUTPUT);
+    inPin[x] = NULL;
+    outPin[x] = NULL; 
   }
-  gateNumber = invert ? 6 : 4;
   return;
 }
 
@@ -102,33 +119,64 @@ void TTLinputPins(int gatevalue)
   invert = 0;
   resetPins();
   switch (gatevalue) {
+    
     case 0://NOT
       gateType = 0;
       invert = 1;
-
+      copy(tempIN1,inPin,sizeof(tempIN1));
+      copy(tempOUT1,outPin,sizeof(tempOUT1));
+      mcp.pinMode(1, INPUT);
+      mcp.pinMode(3, INPUT);
+      mcp.pinMode(5, INPUT);
+      mcp.pinMode(10, INPUT);
+      mcp.pinMode(12, INPUT);
+      mcp.pinMode(14, INPUT);
       break;
+      
     case 1://NOR
       gateType = 1;
+      copy(tempIN2,inPin,sizeof(tempIN2));
+      copy(tempOUT2,outPin,sizeof(tempOUT2));
+      mcp.pinMode(0, INPUT);
+      mcp.pinMode(3, INPUT);
+      mcp.pinMode(12, INPUT);
+      mcp.pinMode(15, INPUT);
       break;
-    case 6: //XOR
-      gateType = 6;
-
-      break;
+      
     case 7: //NAND
       gateType = 7;
-
+      copy(tempIN3,inPin,sizeof(tempIN3));
+      copy(tempOUT3,outPin,sizeof(tempOUT3));
+      mcp.pinMode(2, INPUT);
+      mcp.pinMode(5, INPUT);
+      mcp.pinMode(10, INPUT);
+      mcp.pinMode(13, INPUT);
       break;
+      
     case 8: //AND GATE
       gateType = 8;
-
+      copy(tempIN3,inPin,sizeof(tempIN3));
+      copy(tempOUT3,outPin,sizeof(tempOUT3));
+      mcp.pinMode(2, INPUT);
+      mcp.pinMode(5, INPUT);
+      mcp.pinMode(10, INPUT);
+      mcp.pinMode(13, INPUT);
       break;
+      
     case 14://OR GATE
       gateType = 14;
-
+      copy(tempIN3,inPin,sizeof(tempIN3));
+      copy(tempOUT3,outPin,sizeof(tempOUT3));
+      mcp.pinMode(2, INPUT);
+      mcp.pinMode(5, INPUT);
+      mcp.pinMode(10, INPUT);
+      mcp.pinMode(13, INPUT);
       break;
+      
     default:
-      Serial.println("Default gate");
+      Serial.println("No Gate Selected");
   }
+  
   gateNumber = invert ? 6 : 4;
   return;
 }
@@ -142,29 +190,64 @@ void CMOSinputPins(int gatevalue)
     case 0://NOT
       gateType = 0;
       invert = 1;
-
+      copy(tempIN1,inPin,sizeof(tempIN1));
+      copy(tempOUT1,outPin,sizeof(tempOUT1));
+      mcp.pinMode(1, INPUT);
+      mcp.pinMode(3, INPUT);
+      mcp.pinMode(5, INPUT);
+      mcp.pinMode(10, INPUT);
+      mcp.pinMode(12, INPUT);
+      mcp.pinMode(14, INPUT);
       break;
+      
     case 1://NOR
       gateType = 1;
+      copy(tempIN4,inPin,sizeof(tempIN4));
+      copy(tempOUT4,outPin,sizeof(tempOUT4));
+      mcp.pinMode(2, INPUT);
+      mcp.pinMode(3, INPUT);
+      mcp.pinMode(12, INPUT);
+      mcp.pinMode(13, INPUT);
       break;
-    case 6: //XOR
-      gateType = 6;
-
-      break;
+            
     case 7: //NAND
       gateType = 7;
-
+      copy(tempIN4,inPin,sizeof(tempIN4));
+      copy(tempOUT4,outPin,sizeof(tempOUT4));
+      mcp.pinMode(2, INPUT);
+      mcp.pinMode(3, INPUT);
+      mcp.pinMode(12, INPUT);
+      mcp.pinMode(13, INPUT);
       break;
+      
     case 8: //AND GATE
       gateType = 8;
-
+      copy(tempIN4,inPin,sizeof(tempIN4));
+      copy(tempOUT4,outPin,sizeof(tempOUT4));
+      mcp.pinMode(2, INPUT);
+      mcp.pinMode(3, INPUT);
+      mcp.pinMode(12, INPUT);
+      mcp.pinMode(13, INPUT);
       break;
+      
     case 14://OR GATE
       gateType = 14;
-
+      copy(tempIN4,inPin,sizeof(tempIN4));
+      copy(tempOUT4,outPin,sizeof(tempOUT4));
+      mcp.pinMode(2, INPUT);
+      mcp.pinMode(3, INPUT);
+      mcp.pinMode(12, INPUT);
+      mcp.pinMode(13, INPUT);
       break;
+      
     default:
-      Serial.println("Default gate");
+      Serial.println("No Gate Selected");
   }
+  gateNumber = invert ? 6 : 4;
   return;
+}
+
+// Function to copy 'len' elements from 'src' to 'dst'
+void copy(int* src, int* dst, int len) {
+    memcpy(dst, src, sizeof(src[0])*len);
 }
