@@ -3,6 +3,9 @@
 #include <Wire.h>
 #include "Adafruit_MCP23017.h"
 #include "Adafruit_ILI9341.h"
+#include "SPI.h"
+#include "Adafruit_GFX.h"
+#include "Adafruit_ILI9341.h"
 
 //display pins
 #define TFT_DC 9
@@ -14,6 +17,7 @@
 #define SDA A4
 #define SCL A5
 
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Adafruit_MCP23017 mcp;
 
 void TTLinputPins(int gate = 8); //default the gates to AND
@@ -47,13 +51,28 @@ void setup() {
   //I2C
   Serial.begin(9600);
   mcp.begin();
+  tft.begin();
   TTLinputPins();
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  tft.fillScreen(ILI9341_WHITE);
+  tft.setTextSize(5);
+  tft.setTextColor(ILI9341_BLACK);
+  tft.setCursor(0,0);
+  tft.println("START");
+  delay(10000);
+  tft.fillScreen(ILI9341_YELLOW);
+  delay(50);
   test(gateNumber); //testing this many gates && need to use this as output
+  delay(100);
+  tft.fillScreen(ILI9341_WHITE);
+  tft.setTextSize(5);
+  tft.setCursor(0,0);
+  tft.println("DONE");
+  delay(10);
 }
 
 bool test(int gateNumber) {
@@ -62,17 +81,25 @@ bool test(int gateNumber) {
   int gate = 0;
   bool passFail;
   int pinout1, pinout2, pinIn;
+  tft.setCursor(0,0);
+  tft.println("a");
   for (gate; gate < gateNumber; gate++) {
     testNumber = 8;
     pinout1 = outPin[gate*2];
     pinout2 = outPin[gate*2 + 1];
     pinIn = inPin[gate];
+    //tft.setCursor(0,10);
+    tft.println("d");
 //    if(!invert){ //testing Inverter more complicated
     for (out1 = 1; out1 >= 0; out1--) {
-      for (out2 = 1; out2 >= 0; out1--) {
+      for (out2 = 1; out2 >= 0; out2--) {
         testresults = testresults + (check_Gate(out1, out2,pinout1,pinout2,pinIn) * testNumber); //probably need to send gate pin numbers.
         testNumber / 2;
+        tft.print("c");
       }
+      tft.fillScreen(ILI9341_YELLOW);
+      tft.setCursor(0,0);
+      tft.print("b");
     }
 //    }else{
 //      testNumber/4;
@@ -83,10 +110,25 @@ bool test(int gateNumber) {
 //    }
     passFail = testresults==gateType? true: false;
     
-    if(passFail == false)
+    if(passFail == false) {
+    tft.setCursor(0,0);
+    tft.fillScreen(ILI9341_RED);
+    tft.setTextSize(4);
+    tft.setTextColor(ILI9341_BLACK);
+    tft.println("FAIL");
+    delay(10000);
       break;
+    }
   }
+  if (passFail == true){
+    tft.setCursor(0,0);
+    tft.fillScreen(ILI9341_GREEN);
+    tft.setTextSize(4);
+    tft.setTextColor(ILI9341_BLACK);
+    tft.println("PASS!!!");
+    delay(10000);
   return passFail;
+}
 }
 
 int check_Gate(int output1, int output2, int outpin1, int outpin2, int input1) 
