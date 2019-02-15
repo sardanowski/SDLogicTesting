@@ -6,6 +6,7 @@
 #include "SPI.h"
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
+#include <stdio.h>
 
 //display pins
 #define TFT_DC 9
@@ -63,6 +64,7 @@ void loop() {
   tft.setTextColor(ILI9341_BLACK);
   tft.setCursor(0,0);
   tft.println("START");
+  tft.printf("test");
   delay(10000);
   tft.fillScreen(ILI9341_YELLOW);
   delay(50);
