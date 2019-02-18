@@ -29,16 +29,18 @@ int gateNumber = invert ? 6 : 4; //Used for the number of gates being tested
 int inPin[16];
 int outPin[16];
 
-int tempIN1[] = {1, 3, 5, 10, 12, 14};
+//Input/output pins for different gates.
+//DO NOT REMOVE OR CHANGE
+int tempIN1[] = {1, 3, 5, 10, 12, 14};        //NOT GATES
 int tempOUT1[] = {0, 2, 4, 11, 13, 15};
 
-int tempIN2[] = {0, 3, 12, 15};
+int tempIN2[] = {0, 3, 12, 15};               //TTL NOR
 int tempOUT2[] = {1, 2, 4, 5, 10, 11, 13, 14};
 
-int tempIN3[] = {2, 5, 10, 13};
+int tempIN3[] = {2, 5, 10, 13};               //REST OF TTL
 int tempOUT3[] = {0, 1, 3, 4, 11, 12, 14, 15};
 
-int tempIN4[] = {2, 3, 12, 13};
+int tempIN4[] = {2, 3, 12, 13};               //CMOS GATES
 int tempOUT4[] = {0, 1, 4, 5, 10, 11, 14, 15};
 
 
@@ -52,9 +54,6 @@ void setup() {
   Serial.begin(9600);
   mcp.begin();
   tft.begin();
-  gateType = 8; //CHANGE THIS TO CHANGE GATE TYPE
-  TTLinputPins(gateType); //selecting gate type here
-
 }
 
 void loop() {
@@ -64,6 +63,8 @@ void loop() {
   tft.setTextColor(ILI9341_BLACK);
   tft.setCursor(0, 0);
   tft.println("START");
+  gateType = 8; //CHANGE THIS TO CHANGE GATE TYPE
+  TTLinputPins(gateType); //selecting gate type here
   delay(1000);
   bool result = test(gateNumber); //testing this many gates && need to use this as output
   outputResult(result);
@@ -172,52 +173,52 @@ void TTLinputPins(int gatevalue)
       invert = 1;
       copy(tempIN1, inPin, sizeof(tempIN1));
       copy(tempOUT1, outPin, sizeof(tempOUT1));
-      mcp.pinMode(1, INPUT);
-      mcp.pinMode(3, INPUT);
-      mcp.pinMode(5, INPUT);
-      mcp.pinMode(10, INPUT);
-      mcp.pinMode(12, INPUT);
-      mcp.pinMode(14, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
+      mcp.pinMode(inPin[4], INPUT);
+      mcp.pinMode(inPin[5], INPUT);
       break;
 
     case 1://NOR
       gateType = 1;
       copy(tempIN2, inPin, sizeof(tempIN2));
       copy(tempOUT2, outPin, sizeof(tempOUT2));
-      mcp.pinMode(0, INPUT);
-      mcp.pinMode(3, INPUT);
-      mcp.pinMode(12, INPUT);
-      mcp.pinMode(15, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
       break;
 
     case 7: //NAND
       gateType = 7;
       copy(tempIN3, inPin, sizeof(tempIN3));
       copy(tempOUT3, outPin, sizeof(tempOUT3));
-      mcp.pinMode(2, INPUT);
-      mcp.pinMode(5, INPUT);
-      mcp.pinMode(10, INPUT);
-      mcp.pinMode(13, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
       break;
 
     case 8: //AND GATE
       gateType = 8;
       copy(tempIN3, inPin, sizeof(tempIN3));
       copy(tempOUT3, outPin, sizeof(tempOUT3));
-      mcp.pinMode(2, INPUT);
-      mcp.pinMode(5, INPUT);
-      mcp.pinMode(10, INPUT);
-      mcp.pinMode(13, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
       break;
 
     case 14://OR GATE
       gateType = 14;
       copy(tempIN3, inPin, sizeof(tempIN3));
       copy(tempOUT3, outPin, sizeof(tempOUT3));
-      mcp.pinMode(2, INPUT);
-      mcp.pinMode(5, INPUT);
-      mcp.pinMode(10, INPUT);
-      mcp.pinMode(13, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
       break;
 
     default:
@@ -239,52 +240,52 @@ void CMOSinputPins(int gatevalue)
       invert = 1;
       copy(tempIN1, inPin, sizeof(tempIN1));
       copy(tempOUT1, outPin, sizeof(tempOUT1));
-      mcp.pinMode(1, INPUT);
-      mcp.pinMode(3, INPUT);
-      mcp.pinMode(5, INPUT);
-      mcp.pinMode(10, INPUT);
-      mcp.pinMode(12, INPUT);
-      mcp.pinMode(14, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
+      mcp.pinMode(inPin[4], INPUT);
+      mcp.pinMode(inPin[5], INPUT);
       break;
 
     case 1://NOR
       gateType = 1;
       copy(tempIN4, inPin, sizeof(tempIN4));
       copy(tempOUT4, outPin, sizeof(tempOUT4));
-      mcp.pinMode(2, INPUT);
-      mcp.pinMode(3, INPUT);
-      mcp.pinMode(12, INPUT);
-      mcp.pinMode(13, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
       break;
 
     case 7: //NAND
       gateType = 7;
       copy(tempIN4, inPin, sizeof(tempIN4));
       copy(tempOUT4, outPin, sizeof(tempOUT4));
-      mcp.pinMode(2, INPUT);
-      mcp.pinMode(3, INPUT);
-      mcp.pinMode(12, INPUT);
-      mcp.pinMode(13, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
       break;
 
     case 8: //AND GATE
       gateType = 8;
       copy(tempIN4, inPin, sizeof(tempIN4));
       copy(tempOUT4, outPin, sizeof(tempOUT4));
-      mcp.pinMode(2, INPUT);
-      mcp.pinMode(3, INPUT);
-      mcp.pinMode(12, INPUT);
-      mcp.pinMode(13, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
       break;
 
     case 14://OR GATE
       gateType = 14;
       copy(tempIN4, inPin, sizeof(tempIN4));
       copy(tempOUT4, outPin, sizeof(tempOUT4));
-      mcp.pinMode(2, INPUT);
-      mcp.pinMode(3, INPUT);
-      mcp.pinMode(12, INPUT);
-      mcp.pinMode(13, INPUT);
+      mcp.pinMode(inPin[0], INPUT);
+      mcp.pinMode(inPin[1], INPUT);
+      mcp.pinMode(inPin[2], INPUT);
+      mcp.pinMode(inPin[3], INPUT);
       break;
 
     default:
