@@ -63,8 +63,10 @@ void loop() {
   tft.setTextColor(ILI9341_BLACK);
   tft.setCursor(0, 0);
   tft.println("START");
+  
   gateType = 8; //CHANGE THIS TO CHANGE GATE TYPE
   TTLinputPins(gateType); //selecting gate type here
+  
   delay(1000);
   bool result = test(gateNumber); //testing this many gates && need to use this as output
   outputResult(result);
@@ -97,7 +99,7 @@ void outputResult(bool result) {
 
 bool test(int gateNumber) {
   int out1, out2, testresults = 0;
-  int testNumber = 8; //number to multiply to truth table values to get unique test results
+  int multNum = 8; //number to multiply to truth table values to get unique test results
   int gate;
   bool passFail = true;
   int pinout1, pinout2, pinIn;
@@ -106,12 +108,13 @@ bool test(int gateNumber) {
     pinout1 = outPin[gate * 2];
     pinout2 = outPin[gate * 2 + 1];
     pinIn = inPin[gate];
+    multNum = 8;
 
     //    if(!invert){ //testing Inverter more complicated
     for (out1 = 1; out1 >= 0; out1--) {
       for (out2 = 1; out2 >= 0; out2--) {
-        testresults = testresults + (check_Gate(out1, out2, pinout1, pinout2, pinIn) * testNumber); //probably need to send gate pin numbers.
-        testNumber = testNumber / 2;
+        testresults = testresults + (check_Gate(out1, out2, pinout1, pinout2, pinIn) * multNum); //probably need to send gate pin numbers.
+        multNum = multNum / 2;
 
         tft.setCursor(0, 0);
         tft.setTextSize(4);
@@ -122,10 +125,10 @@ bool test(int gateNumber) {
       }
     }
     //    }else{
-    //      testNumber/4;
+    //      multNum/4;
     //      for (out2 = 1; out2 >= 0; out1--) {
-    //        testresults = testresults + (check_Gate(out1, out2) * testNumber); //probably need to send gate pin numbers.
-    //        testNumber / 2;
+    //        testresults = testresults + (check_Gate(out1, out2) * multNum); //probably need to send gate pin numbers.
+    //        multNum / 2;
     //      }
     //    }
     passFail = (testresults == gateType) ? true : false;
