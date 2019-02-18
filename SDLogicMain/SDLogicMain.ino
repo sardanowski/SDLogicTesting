@@ -20,15 +20,14 @@
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Adafruit_MCP23017 mcp;
-
-void TTLinputPins(int gate = 8); //default the gates to AND
-void CMOSinputPins(int gate = 8);
+int gateType = 8; //default gate to AND
+//void TTLinputPins(8); //default the gates to AND
+//void CMOSinputPins(8);
 
 int invert = 0;
 int gateNumber = invert ? 6 : 4; //Used for the number of gates being tested
 int inPin[16];
 int outPin[16];
-int gateType = 8;
 
 int tempIN1[] = {1, 3, 5, 10, 12, 14};
 int tempOUT1[] = {0, 2, 4, 11, 13, 15};
@@ -53,7 +52,8 @@ void setup() {
   Serial.begin(9600);
   mcp.begin();
   tft.begin();
-  TTLinputPins();
+  gateType = 8; //CHANGE THIS TO CHANGE GATE TYPE
+  TTLinputPins(gateType); //selecting gate type here
 
 }
 
@@ -65,41 +65,60 @@ void loop() {
   tft.setCursor(0, 0);
   tft.println("START");
   delay(1000);
-  tft.fillScreen(ILI9341_YELLOW);
-  delay(50);
-  test(gateNumber); //testing this many gates && need to use this as output
-  delay(100);
+  bool result = test(gateNumber); //testing this many gates && need to use this as output
+  outputResult(result);
+
   tft.fillScreen(ILI9341_WHITE);
   tft.setTextSize(5);
   tft.setCursor(0, 0);
   tft.println("DONE");
-  delay(10);
+  delay(1000);
+}
+
+void outputResult(bool result) {
+
+  if (result == false) {
+    tft.setCursor(0, 0);
+    tft.fillScreen(ILI9341_RED);
+    tft.setTextSize(4);
+    tft.setTextColor(ILI9341_BLACK);
+    tft.println("FAIL");
+  }
+  else {
+    tft.setCursor(0, 0);
+    tft.fillScreen(ILI9341_GREEN);
+    tft.setTextSize(4);
+    tft.setTextColor(ILI9341_BLACK);
+    tft.println("PASS!!!");
+  }
+  delay(1000);
 }
 
 bool test(int gateNumber) {
-  int out1, out2, testresults;
+  int out1, out2, testresults = 0;
   int testNumber = 8; //number to multiply to truth table values to get unique test results
   int gate;
   bool passFail = true;
   int pinout1, pinout2, pinIn;
-  tft.setCursor(0, 0);
-  tft.println("a");
+
   for (gate = 0; gate < gateNumber; gate++) {
     pinout1 = outPin[gate * 2];
     pinout2 = outPin[gate * 2 + 1];
     pinIn = inPin[gate];
-    //tft.setCursor(0,10);
-    tft.println("d");
+
     //    if(!invert){ //testing Inverter more complicated
     for (out1 = 1; out1 >= 0; out1--) {
       for (out2 = 1; out2 >= 0; out2--) {
         testresults = testresults + (check_Gate(out1, out2, pinout1, pinout2, pinIn) * testNumber); //probably need to send gate pin numbers.
         testNumber = testNumber / 2;
+
+        tft.setCursor(0, 0);
+        tft.setTextSize(4);
+        tft.setTextColor(ILI9341_BLACK); //code to look at testing results
         tft.println(testresults);
+        delay(1000);
+
       }
-      tft.fillScreen(ILI9341_YELLOW);
-      tft.setCursor(0, 0);
-      tft.print("b");
     }
     //    }else{
     //      testNumber/4;
@@ -111,22 +130,8 @@ bool test(int gateNumber) {
     passFail = (testresults == gateType) ? true : false;
 
     if (passFail == false) {
-      tft.setCursor(0, 0);
-      tft.fillScreen(ILI9341_RED);
-      tft.setTextSize(4);
-      tft.setTextColor(ILI9341_BLACK);
-      tft.println("FAIL");
-      delay(1000);
-      break;
+      return passFail;
     }
-  }
-  if (passFail == true) {
-    tft.setCursor(0, 0);
-    tft.fillScreen(ILI9341_GREEN);
-    tft.setTextSize(4);
-    tft.setTextColor(ILI9341_BLACK);
-    tft.println("PASS!!!");
-    delay(1000);
   }
   return passFail;
 }
@@ -216,7 +221,7 @@ void TTLinputPins(int gatevalue)
       break;
 
     default:
-      Serial.println("No Gate Selected");
+      tft.println("No Gate Selected");
   }
 
   gateNumber = invert ? 6 : 4;
@@ -283,7 +288,7 @@ void CMOSinputPins(int gatevalue)
       break;
 
     default:
-      Serial.println("No Gate Selected");
+      tft.println("No Gate Selected");
   }
   gateNumber = invert ? 6 : 4;
   return;
