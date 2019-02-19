@@ -114,6 +114,7 @@ bool test(int gateNumber) {
 
         tft.setCursor(0, 0);
         tft.setTextSize(4);
+        tft.fillScreen(ILI9341_BLUE);
         tft.setTextColor(ILI9341_BLACK); //code to look at testing results
         tft.println(testresults);
         delay(1000);
