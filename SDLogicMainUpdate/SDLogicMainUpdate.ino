@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+#include <TinyWireM.h>
+#include <USI_TWI_Master.h>
+>>>>>>> parent of da2156a... version 1.04
 #include <Wire.h>
 #include "Adafruit_MCP23017.h"
 #include "Adafruit_ILI9341.h"
@@ -19,6 +24,7 @@
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Adafruit_MCP23017 mcp;
 byte gateType = 8; //default gate to AND
+<<<<<<< HEAD
 
 
 //Input/output pins for different gates.
@@ -26,6 +32,29 @@ byte gateType = 8; //default gate to AND
 
 
 
+=======
+//void TTLinputPins(8); //default the gates to AND
+//void CMOSinputPins(8);
+
+byte invert = 0;
+byte gateNumber = invert ? 6 : 4; //Used for the number of gates being tested
+byte inPin[16];
+byte outPin[16];
+
+//Input/output pins for different gates.
+//DO NOT REMOVE OR CHANGE
+byte tempIN1[] = {1, 3, 5, 10, 12, 14};        //NOT GATES
+byte tempOUT1[] = {0, 2, 4, 11, 13, 15};
+
+byte tempIN2[] = {0, 3, 12, 15};               //TTL NOR
+byte tempOUT2[] = {1, 2, 4, 5, 10, 11, 13, 14};
+
+byte tempIN3[] = {2, 5, 10, 13};               //REST OF TTL
+byte tempOUT3[] = {0, 1, 3, 4, 11, 12, 14, 15};
+
+byte tempIN4[] = {2, 3, 12, 13};               //CMOS GATES
+byte tempOUT4[] = {0, 1, 4, 5, 10, 11, 14, 15};
+>>>>>>> parent of da2156a... version 1.04
 
 
 void setup() {
@@ -36,6 +65,10 @@ void setup() {
 
   //I2C
   Serial.begin(9600);
+<<<<<<< HEAD
+=======
+  mcp.begin();
+>>>>>>> parent of da2156a... version 1.04
   tft.begin();
 }
 
@@ -43,6 +76,7 @@ void loop() {
   // put your main code here, to run repeatedly:
   tft.fillScreen(ILI9341_WHITE);
   tft.setTextSize(5);
+<<<<<<< HEAD
   tft.setCursor(0, 0);
   tft.println("start");
 
@@ -51,10 +85,30 @@ void loop() {
 
   tft.fillScreen(ILI9341_WHITE);
   tft.setTextSize(5);
+=======
+  tft.setTextColor(ILI9341_BLACK);
+  tft.setCursor(0, 0);
+  tft.println("start");
+
+  gateType = 8; //CHANGE THIS TO CHANGE GATE TYPE
+  TTLinputPins(gateType); //selecting gate type here
+
+  delay(1000);
+  bool result = test(gateNumber); //testing this many gates && need to use this as output
+  outputResult(result);
+
+  tft.fillScreen(ILI9341_WHITE);
+  tft.setTextSize(5);
+  tft.setCursor(0, 0);
+>>>>>>> parent of da2156a... version 1.04
   tft.println("DONE");
   delay(1000);
 }
 
+<<<<<<< HEAD
+=======
+void outputResult(bool result) {
+>>>>>>> parent of da2156a... version 1.04
 
   if (result == false) {
     tft.setCursor(0, 0);
@@ -73,10 +127,28 @@ void loop() {
   delay(1000);
 }
 
+<<<<<<< HEAD
 
 
     //    if(!invert){ //testing Inverter more complicated
 <<<<<<< HEAD
+=======
+bool test(byte gateNumber) {
+  byte out1, out2, testresults = 0;
+  byte multNum = 1; //number to multiply to truth table values to get unique test results
+  byte gate;
+  bool passFail = true;
+  byte pinout1, pinout2, pinIn;
+
+  for (gate = 0; gate < gateNumber; gate++) {
+    pinout1 = outPin[gate * 2];
+    pinout2 = outPin[gate * 2 + 1];
+    pinIn = inPin[gate];
+    multNum = 1;
+    testresults = 0;
+
+    //    if(!invert){ //testing Inverter more complicated
+>>>>>>> parent of da2156a... version 1.04
     for (out1 = 0; out1 <= 1; out1++) {
       for (out2 = 0; out2 <= 1; out2++) {
         byte checkValue = check_Gate(out1, out2, pinout1, pinout2, pinIn);
@@ -85,7 +157,10 @@ void loop() {
         tft.fillScreen(ILI9341_WHITE);
         tft.setCursor(0, 0);
         tft.setTextSize(4);
+<<<<<<< HEAD
         tft.fillScreen(ILI9341_BLUE);
+=======
+>>>>>>> parent of da2156a... version 1.04
         tft.setTextColor(ILI9341_BLACK); //code to look at testing results
         tft.println(testresults);
         tft.println(multNum);
@@ -96,8 +171,11 @@ void loop() {
         delay(1000);
 
         multNum = multNum * 2;
+<<<<<<< HEAD
 =======
 >>>>>>> da2156a27fb773cf53fb8152e29e92185c3267d0
+=======
+>>>>>>> parent of da2156a... version 1.04
 
       }
     }
@@ -108,7 +186,13 @@ void loop() {
     //        multNum / 2;
     //      }
     //    }
+<<<<<<< HEAD
 
+=======
+    passFail = (testresults == gateType) ? true : false;
+
+    if (passFail == false) {
+>>>>>>> parent of da2156a... version 1.04
       return passFail;
     }
   }
@@ -118,12 +202,38 @@ void loop() {
 byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte input1)
 //checking what the output is when giving inputs
 {
+<<<<<<< HEAD
 
   //check for shorts here complicated
 
   //tft.println("Check Gate Value is :");
 }
 
+=======
+  mcp.digitalWrite(outpin1, output1);
+  mcp.digitalWrite(outpin2, output2);
+
+  //check for shorts here complicated
+
+  delay(10); // Make sure the signal has time to propogate through the gate.
+  //tft.println("Check Gate Value is :");
+  return mcp.digitalRead(input1);
+
+//  tft.fillScreen(ILI9341_WHITE);
+//  tft.setCursor(0, 0);
+//  tft.setTextSize(4);
+//  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
+//  tft.println(output1);
+//  tft.println(output2);
+//  tft.println(x);
+//  delay(500);
+//  //  tft.println(x);
+//
+//  return x;
+}
+
+void resetPins() {
+>>>>>>> parent of da2156a... version 1.04
   for (byte x = 0; x < 16; x++) {
     mcp.pinMode(x, OUTPUT);
     mcp.pullUp(x,HIGH);
@@ -197,6 +307,10 @@ void TTLinputPins(byte gatevalue)
       tft.println("No Gate Selected");
   }
 
+<<<<<<< HEAD
+=======
+  gateNumber = invert ? 6 : 4;
+>>>>>>> parent of da2156a... version 1.04
   return;
 }
 
@@ -262,6 +376,10 @@ void CMOSinputPins(byte gatevalue)
     default:
       tft.println("No Gate Selected");
   }
+<<<<<<< HEAD
+=======
+  gateNumber = invert ? 6 : 4;
+>>>>>>> parent of da2156a... version 1.04
   return;
 }
 
