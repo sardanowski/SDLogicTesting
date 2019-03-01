@@ -117,26 +117,9 @@ bool test(byte numberGates) {
     testresults = 0;                          //resetting variable after each gate itteration
 
     //    if(!invert){ //testing Inverter more complicated
-<<<<<<< HEAD
-    for (out1 = 0; out1 <= 1; out1++) {
-      for (out2 = 0; out2 <= 1; out2++) {
-        byte checkValue = check_Gate(out1, out2, pinout1, pinout2, pinIn);
-        testresults = testresults + checkValue * multNum; //probably need to send gate pin numbers.
-
-        tft.fillScreen(ILI9341_WHITE);
-        tft.setCursor(0, 0);
-        tft.setTextSize(4);
-        tft.fillScreen(ILI9341_BLUE);
-        tft.setTextColor(ILI9341_BLACK); //code to look at testing results
-        tft.println(testresults);
         tft.println(multNum);
         tft.println(checkValue);
         tft.println(pinout1);
-        tft.println(pinout2);
-        tft.println(pinIn);
-        delay(1000);
-
-        multNum = multNum * 2;
 =======
     for (out1 = 0; out1 <= 1; out1++) {                                    //looping through binary outputs
       for (out2 = 0; out2 <= 1; out2++) {                                  //looping through binary outputs
@@ -156,7 +139,6 @@ bool test(byte numberGates) {
 //        delay(500);
 
         multNum = multNum * 2;                                            //double the num to generate unique test values.
->>>>>>> da2156a27fb773cf53fb8152e29e92185c3267d0
 
       }
     }
