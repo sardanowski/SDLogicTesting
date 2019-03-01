@@ -117,10 +117,6 @@ bool test(byte numberGates) {
     testresults = 0;                          //resetting variable after each gate itteration
 
     //    if(!invert){ //testing Inverter more complicated
-        tft.println(multNum);
-        tft.println(checkValue);
-        tft.println(pinout1);
-=======
     for (out1 = 0; out1 <= 1; out1++) {                                    //looping through binary outputs
       for (out2 = 0; out2 <= 1; out2++) {                                  //looping through binary outputs
         byte checkValue = check_Gate(out1, out2, pinout1, pinout2, pinIn); //outputting binary values and reading input pin
