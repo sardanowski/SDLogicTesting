@@ -24,6 +24,8 @@ Adafruit_MCP23017 mcp;
 byte gateType = 8; //default gate to AND
 //void TTLinputPins(byte gateType = 8); //default the gates to AND
 //void CMOSinputPins(byte gateType = 8);
+//Pushbutton setup
+const int PIN_BUTTON_TEST = 8;
 
 byte invert = 0;                   //used to tell if it is a NOT gate (not used yet)
 byte numberGates = invert ? 6 : 4; //Used for the number of gates being tested
@@ -57,6 +59,9 @@ void setup() {
   Wire.begin();
   mcp.begin();              //using default address of 0 for MCP_23017
   tft.begin();
+  //Pushbutton stuff, active low trigger
+  pinMode(PIN_BUTTON_TEST, INPUT);
+  digitalWrite(PIN_BUTTON_TEST, HIGH);
 }
 
 void loop() {
@@ -69,7 +74,7 @@ void loop() {
 
   gateType = 14;             //CHANGE THIS TO CHANGE GATE TYPE
   CMOSinputPins(gateType);   //selecting gate type here
-
+  if ( PIN_BUTTON_TEST == LOW) {
   delay(1000);
   bool result = test(numberGates); //testing this many gates && need to use this as output
   outputResult(result);            //outputting to display
@@ -78,6 +83,8 @@ void loop() {
   tft.setTextSize(5);
   tft.setCursor(0, 0);   //Display stuff
   tft.println("DONE");
+  delay(1000);
+  }
   delay(1000);
 }
 
