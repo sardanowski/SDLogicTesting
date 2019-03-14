@@ -1,12 +1,18 @@
 //#include <TinyWireM.h>
 //#include <USI_TWI_Master.h>
+#include <Arduino.h>
 #include <Wire.h>
+#include <menu.h>
+#include <menuIO/adafruitGfxOut.h>
 #include "Adafruit_MCP23017.h"
 #include "Adafruit_ILI9341.h"
 #include "SPI.h"
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
 #include "Print.h"
+#include <PinChangeInterruptBoards.h>
+using namespace Menu;
+
 
 //display pins
 #define TFT_DC 9
@@ -47,6 +53,10 @@ byte tempIN4[] = {4, 5, 10, 11};               //CMOS GATES  //
 byte tempOUT4[] = {2, 3, 6, 7, 8, 9, 12, 13};
 
 
+
+
+
+
 void setup() {
   //put your setup code here, to run once:
   //DISPLAY()
@@ -59,13 +69,21 @@ void setup() {
   Wire.begin();
   mcp.begin();              //using default address of 0 for MCP_23017
   tft.begin();
+//  nav.begin()
+//  idleTask=idle;
+  //mainMenu[1].disable();
   //Pushbutton stuff, active low trigger
   pinMode(PIN_BUTTON_TEST, INPUT);
   digitalWrite(PIN_BUTTON_TEST, HIGH);
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setTextColor(ILI9341_RED,ILI9341_BLACK);
+  tft.println("Menu test");
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  //nav.poll();
+ // delay(10000);
   tft.fillScreen(ILI9341_WHITE);
   tft.setTextSize(5);
   tft.setTextColor(ILI9341_BLACK);  //Display stuff
@@ -73,8 +91,8 @@ void loop() {
   tft.println("start");
 
   gateType = 14;             //CHANGE THIS TO CHANGE GATE TYPE
-  CMOSinputPins(gateType);   //selecting gate type here
-  if ( PIN_BUTTON_TEST == LOW) {
+  TTLinputPins(gateType);   //selecting gate type here
+  //if ( PIN_BUTTON_TEST == LOW) {
   delay(1000);
   bool result = test(numberGates); //testing this many gates && need to use this as output
   outputResult(result);            //outputting to display
@@ -84,8 +102,8 @@ void loop() {
   tft.setCursor(0, 0);   //Display stuff
   tft.println("DONE");
   delay(1000);
-  }
-  delay(1000);
+ // }
+ // delay(1000);
 }
 
 void outputResult(bool result) 
