@@ -8,7 +8,6 @@
 #include "Adafruit_ILI9341.h"
 #include "SPI.h"
 #include "Adafruit_GFX.h"
-#include "Adafruit_ILI9341.h"
 #include "Print.h"
 #include <PinChangeInterruptBoards.h>
 
@@ -46,8 +45,8 @@ byte outPin[16];                   //array of output PINS to use
 
 //Input/output pins for different gates.
 //DO NOT REMOVE OR CHANGE
-byte tempIN1[] = {2, 4, 6, 9, 11, 13};        //NOT GATES  //fixed
-byte tempOUT1[] = {3, 5, 7, 8, 9, 10, 12};
+byte tempIN1[] = {2, 4, 6, 9, 11, 13};        //NOT GATES  //DOUBLE CHECK THESE GATES!@!@!@!@!@!@!@!@!@!@!@!@!@!@
+byte tempOUT1[] = {3, 5, 7, 8, 10, 12};
 
 byte tempIN2[] = {4, 7, 8, 11};               //TTL NOR  //fixed
 byte tempOUT2[] = {2, 3, 5, 6, 9, 10, 12, 13};
@@ -55,12 +54,8 @@ byte tempOUT2[] = {2, 3, 5, 6, 9, 10, 12, 13};
 byte tempIN3[] = {2, 5, 10, 13};               //REST OF TTL //fixed
 byte tempOUT3[] = {3, 4, 6, 7, 8, 9, 11, 12};
 
-byte tempIN4[] = {4, 5, 10, 11};               //CMOS GATES  //
+byte tempIN4[] = {4, 5, 10, 11};               //CMOS GATES  //fixed
 byte tempOUT4[] = {2, 3, 6, 7, 8, 9, 12, 13};
-
-
-
-
 
 
 void setup() {
@@ -114,7 +109,8 @@ void loop() {
     if (digitalRead(OK) == LOW)
       testScreen(highlighted);
 
-  }
+  gateType = 14;             //CHANGE THIS TO CHANGE GATE TYPE
+  CMOSinputPins(gateType);   //selecting gate type here
 
   gateType = 14;             //CHANGE THIS TO CHANGE GATE TYPE
   TTLinputPins(gateType);   //selecting gate type here
@@ -130,6 +126,41 @@ void loop() {
   delay(1000);
   // }
   // delay(1000);
+}
+
+bool check(byte ar[], int n)
+//checking if all the elements in the array are the same
+//fault checking
+{
+  bool flag = 0;
+
+  for (byte i = 0; i < n - 1; i++)
+  {
+    if (ar[i] != ar[i + 1])
+      flag = 1;
+  }
+
+  return flag;
+}
+
+byte* increment(byte* A) 
+//used to increment array for fault checking
+{
+  boolean carry = true;
+  for (byte i = (sizeof(A) - 1); i >= 0; i--) {
+    if (carry) {
+      if (A[i] == 0) {
+        A[i] = 1;
+        carry = false;
+      }
+      else {
+        A[i] = 0;
+        carry = true;
+      }
+    }
+  }
+
+  return A;
 }
 
 void outputResult(bool result)
@@ -161,41 +192,43 @@ bool test(byte numberGates) {
   byte pinout1, pinout2, pinIn;      //pins to output on and input from
 
   for (gate = 0; gate < numberGates; gate++) {//looping through the number of gates to test
-    pinout1 = outPin[gate * 2];               //setting output pin 1
-    pinout2 = outPin[gate * 2 + 1];           //setting output pin 2
     pinIn = inPin[gate];                      //seeting input pin
     multNum = 1;                              //resetting variable after each gate itteration
     testresults = 0;                          //resetting variable after each gate itteration
 
-    //    if(!invert){ //testing Inverter more complicated
-    for (out1 = 0; out1 <= 1; out1++) {                                    //looping through binary outputs
-      for (out2 = 0; out2 <= 1; out2++) {                                  //looping through binary outputs
-        byte checkValue = check_Gate(out1, out2, pinout1, pinout2, pinIn); //outputting binary values and reading input pin
-        testresults = testresults + checkValue * multNum;                  //calculation each gates unique number
+    if (!invert) { //testing Inverter more complicated
+      pinout1 = outPin[gate * 2];               //setting output pin 1
+      pinout2 = outPin[gate * 2 + 1];           //setting output pin 2
+      for (out1 = 0; out1 <= 1; out1++) {                                    //looping through binary outputs
+        for (out2 = 0; out2 <= 1; out2++) {                                  //looping through binary outputs
+          byte checkValue = check_Gate(out1, out2, pinout1, pinout2, pinIn); //outputting binary values and reading input pin
+          testresults = testresults + checkValue * multNum;                  //calculation each gates unique number
 
-        //        tft.fillScreen(ILI9341_WHITE);
-        //        tft.setCursor(0, 0);
-        //        tft.setTextSize(4);
-        //        tft.setTextColor(ILI9341_BLACK); //code to look at testing results
-        //        tft.println(testresults);
-        //        tft.println(multNum);     //testing outputs
-        //        tft.println(checkValue);
-        //        tft.println(pinout1);
-        //        tft.println(pinout2);
-        //        tft.println(pinIn);
-        //        delay(500);
+          //        tft.fillScreen(ILI9341_WHITE);
+          //        tft.setCursor(0, 0);
+          //        tft.setTextSize(4);
+          //        tft.setTextColor(ILI9341_BLACK); //code to look at testing results
+          //        tft.println(testresults);
+          //        tft.println(multNum);     //testing outputs
+          //        tft.println(checkValue);
+          //        tft.println(pinout1);
+          //        tft.println(pinout2);
+          //        tft.println(pinIn);
+          //        delay(500);
 
-        multNum = multNum * 2;                                            //double the num to generate unique test values.
+          multNum = multNum * 2;                                            //double the num to generate unique test values.
 
+        }
       }
+    } else {
+      pinout1 = outPin[gate];               //setting output pin 1
+      for (out2 = 0; out2 <= 1; out1++) {
+        byte checkValue = check_Invert(out1, pinout1, pinIn);      //outputting binary values and reading input pin
+        testresults = testresults + checkValue * multNum;                  //calculation each gates unique number
+        multNum * 2;
+      }
+      testresults = testresults == 1 ? 0 : -1;
     }
-    //    }else{
-    //      multNum/4;
-    //      for (out2 = 1; out2 >= 0; out1--) {
-    //        testresults = testresults + (check_Gate(out1, out2) * multNum); //probably need to send gate pin numbers.
-    //        multNum / 2;
-    //      }
-    //    }
     passFail = (testresults == gateType) ? true : false;                 //check pass or fail
 
     if (passFail == false) {                                             //return if fail, else continue
@@ -209,27 +242,80 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
 //checking what the output is when giving inputs
 {
   mcp.digitalWrite(outpin1, output1);                                   //writing output1 to outpin1
-  delay(100);
   mcp.digitalWrite(outpin2, output2);                                   //writing output2 to outpin2
 
+  byte x[256];
   //check for shorts here complicated
 
-  delay(100);                                                           // Make sure the signal has time to propogate through the gate.
-  //tft.println("Check Gate Value is :");
-  //return
-  byte x = mcp.digitalRead(input1);                                     //reading from the input pin
+  byte values[8];
+  byte gate = 0;
+  byte inc = 0;
+  for (inc = 0; inc < sizeof(x); inc++) {
+    for (gate = 0; gate < numberGates * 2; gate++) { //looping through the number of gates to test
+      byte pinOut = outPin[gate];
 
-  tft.fillScreen(ILI9341_WHITE);
-  tft.setCursor(0, 0);
-  tft.setTextSize(4);
-  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
-  tft.println(output1);
-  tft.println(output2);
-  tft.println(x);
-  delay(500);
+      if (pinOut == outpin1 || pinOut == outpin2) continue;
+
+      mcp.digitalWrite(pinOut, values[gate]);                                   //writing output1 to outpin1
+
+      delay(100);                                                           // Make sure the signal has time to propogate through the gate.
+      x[gate] = mcp.digitalRead(input1);                               //reading from the input pin
+    }
+    increment(values);
+  }
+
+  //  tft.fillScreen(ILI9341_WHITE);
+  //  tft.setCursor(0, 0);
+  //  tft.setTextSize(4);
+  //  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
+  //  tft.println(output1);
+  //  tft.println(output2);
   //  tft.println(x);
+  //  delay(500);
+  //  //  tft.println(x);
 
-  return x;
+  byte retval = check(x, sizeof(x)) ? x[0] : -1;
+
+  return retval;
+}
+
+byte check_Invert(byte output1, byte outpin1, byte input1)
+//checking what the output is when giving inputs
+{
+  mcp.digitalWrite(outpin1, output1);                                   //writing output1 to outpin1
+
+  byte x[64];
+  //check for shorts here complicated
+  byte values[6] = {0, 0, 0, 0, 0, 0};
+  byte gate = 0;
+  byte inc = 0;
+  for (inc = 0; inc < sizeof(x); inc++) {
+    for (gate = 0; gate < numberGates; gate++) {//looping through the number of gates to test
+      byte pinOut = outPin[gate];
+
+      if (pinOut == outpin1) continue;
+
+      mcp.digitalWrite(pinOut, values[gate]);                                   //writing output1 to outpin1
+
+      delay(100);                                                           // Make sure the signal has time to propogate through the gate.
+      x[gate] = mcp.digitalRead(input1);                               //reading from the input pin
+    }
+    increment(values);
+  }
+
+  //  tft.fillScreen(ILI9341_WHITE);
+  //  tft.setCursor(0, 0);
+  //  tft.setTextSize(4);
+  //  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
+  //  tft.println(output1);
+  //  tft.println(output2);
+  //  tft.println(x);
+  //  delay(500);
+  //  //  tft.println(x);
+
+  byte retval = check(x, sizeof(x)) ? x[0] : -1;
+
+  return retval;
 }
 
 void resetPins()
