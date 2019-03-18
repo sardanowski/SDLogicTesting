@@ -75,8 +75,8 @@ void setup() {
   Wire.begin();
   mcp.begin();              //using default address of 0 for MCP_23017
   tft.begin();
-//  nav.begin()
-//  idleTask=idle;
+  //  nav.begin()
+  //  idleTask=idle;
   //mainMenu[1].disable();
   //Pushbuttons set to inputs
   pinMode(OK, INPUT);
@@ -86,32 +86,34 @@ void setup() {
   digitalWrite(OK, HIGH);
   digitalWrite(DOWN, HIGH);
   digitalWrite(BACK, HIGH);
-  
+
   tft.fillScreen(ILI9341_BLACK);
-  tft.setTextColor(ILI9341_RED,ILI9341_BLACK);
+  tft.setTextColor(ILI9341_RED, ILI9341_BLACK);
   tft.println("Menu test");
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   //nav.poll();
- // delay(10000);
+  // delay(10000);
   tft.fillScreen(ILI9341_WHITE);
   tft.setTextSize(5);
   tft.setTextColor(ILI9341_BLACK);  //Display stuff
   tft.setCursor(0, 0);
   tft.println("start");
-  //Display main menu  
+  //Display main menu
   highlight(highlighted);
   while (1) {
-  
+
     if (digitalRead(DOWN) == LOW) {
       highlighted++;
-      if (highlighted > 9) 
-        highlighted = 0; 
-       highlight(highlighted);
+      if (highlighted > 9)
+        highlighted = 0;
+      highlight(highlighted);
     }
-    
+    if (digitalRead(OK) == LOW)
+      testScreen(highlighted);
+
   }
 
   gateType = 14;             //CHANGE THIS TO CHANGE GATE TYPE
@@ -126,11 +128,11 @@ void loop() {
   tft.setCursor(0, 0);   //Display stuff
   tft.println("DONE");
   delay(1000);
- // }
- // delay(1000);
+  // }
+  // delay(1000);
 }
 
-void outputResult(bool result) 
+void outputResult(bool result)
 //outputting the pass fail
 {
 
@@ -171,17 +173,17 @@ bool test(byte numberGates) {
         byte checkValue = check_Gate(out1, out2, pinout1, pinout2, pinIn); //outputting binary values and reading input pin
         testresults = testresults + checkValue * multNum;                  //calculation each gates unique number
 
-//        tft.fillScreen(ILI9341_WHITE);
-//        tft.setCursor(0, 0);
-//        tft.setTextSize(4);
-//        tft.setTextColor(ILI9341_BLACK); //code to look at testing results
-//        tft.println(testresults);
-//        tft.println(multNum);     //testing outputs
-//        tft.println(checkValue);
-//        tft.println(pinout1);
-//        tft.println(pinout2);
-//        tft.println(pinIn);
-//        delay(500);
+        //        tft.fillScreen(ILI9341_WHITE);
+        //        tft.setCursor(0, 0);
+        //        tft.setTextSize(4);
+        //        tft.setTextColor(ILI9341_BLACK); //code to look at testing results
+        //        tft.println(testresults);
+        //        tft.println(multNum);     //testing outputs
+        //        tft.println(checkValue);
+        //        tft.println(pinout1);
+        //        tft.println(pinout2);
+        //        tft.println(pinIn);
+        //        delay(500);
 
         multNum = multNum * 2;                                            //double the num to generate unique test values.
 
@@ -214,7 +216,7 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
 
   delay(100);                                                           // Make sure the signal has time to propogate through the gate.
   //tft.println("Check Gate Value is :");
-  //return 
+  //return
   byte x = mcp.digitalRead(input1);                                     //reading from the input pin
 
   tft.fillScreen(ILI9341_WHITE);
@@ -230,12 +232,12 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
   return x;
 }
 
-void resetPins() 
+void resetPins()
 //resetting all pins to output and adding an internal pull up
 {
   for (byte x = 0; x < 16; x++) {
     mcp.pinMode(x, OUTPUT);
-    mcp.pullUp(x,HIGH);
+    mcp.pullUp(x, HIGH);
     inPin[x] = 0;
     outPin[x] = 0;
   }
@@ -383,189 +385,580 @@ void copy(byte* src, byte* dst, int len) {
 
 //Function to highlight text for UI
 void highlight(int x) {
-  tft.setCursor(0,0);
+  tft.setCursor(0, 0);
   tft.setTextSize(2);
   switch (x) {
-  //TTL And highlighted
-  case 0:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("TTL AND Gate");
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL OR Gate");
-    tft.println("TTL NAND Gate");
-    tft.println("TTL NOR Gate");
-    tft.println("TTL Inverter");
-    tft.println("CMOS AND Gate");
-    tft.println("CMOS OR Gate");
-    tft.println("CMOS NAND Gate");
-    tft.println("CMOS NOR Gate");
-    tft.println("CMOS Inverter");
-    break;
+    //TTL And highlighted
+    case 0:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("TTL AND Gate");
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL OR Gate");
+      tft.println("TTL NAND Gate");
+      tft.println("TTL NOR Gate");
+      tft.println("TTL Inverter");
+      tft.println("CMOS AND Gate");
+      tft.println("CMOS OR Gate");
+      tft.println("CMOS NAND Gate");
+      tft.println("CMOS NOR Gate");
+      tft.println("CMOS Inverter");
+      break;
 
-   //TTL OR Highlighted
-   case 1:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL AND Gate");
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("TTL OR Gate");
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL NAND Gate");
-    tft.println("TTL NOR Gate");
-    tft.println("TTL Inverter");
-    tft.println("CMOS AND Gate");
-    tft.println("CMOS OR Gate");
-    tft.println("CMOS NAND Gate");
-    tft.println("CMOS NOR Gate");
-    tft.println("CMOS Inverter");
-   break;
+    //TTL OR Highlighted
+    case 1:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL AND Gate");
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("TTL OR Gate");
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL NAND Gate");
+      tft.println("TTL NOR Gate");
+      tft.println("TTL Inverter");
+      tft.println("CMOS AND Gate");
+      tft.println("CMOS OR Gate");
+      tft.println("CMOS NAND Gate");
+      tft.println("CMOS NOR Gate");
+      tft.println("CMOS Inverter");
+      break;
 
     //TTL NAND Highlighted
-   case 2:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL AND Gate");
-    tft.println("TTL OR Gate");
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("TTL NAND Gate");
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL NOR Gate");
-    tft.println("TTL Inverter");
-    tft.println("CMOS AND Gate");
-    tft.println("CMOS OR Gate");
-    tft.println("CMOS NAND Gate");
-    tft.println("CMOS NOR Gate");
-    tft.println("CMOS Inverter");
-   break;
+    case 2:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL AND Gate");
+      tft.println("TTL OR Gate");
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("TTL NAND Gate");
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL NOR Gate");
+      tft.println("TTL Inverter");
+      tft.println("CMOS AND Gate");
+      tft.println("CMOS OR Gate");
+      tft.println("CMOS NAND Gate");
+      tft.println("CMOS NOR Gate");
+      tft.println("CMOS Inverter");
+      break;
 
-  //TTL NOR HIghlighted
-   case 3:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL AND Gate");
-    tft.println("TTL OR Gate");
-    tft.println("TTL NAND Gate");
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("TTL NOR Gate");
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL Inverter");
-    tft.println("CMOS AND Gate");
-    tft.println("CMOS OR Gate");
-    tft.println("CMOS NAND Gate");
-    tft.println("CMOS NOR Gate");
-    tft.println("CMOS Inverter");
-  break;
+    //TTL NOR HIghlighted
+    case 3:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL AND Gate");
+      tft.println("TTL OR Gate");
+      tft.println("TTL NAND Gate");
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("TTL NOR Gate");
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL Inverter");
+      tft.println("CMOS AND Gate");
+      tft.println("CMOS OR Gate");
+      tft.println("CMOS NAND Gate");
+      tft.println("CMOS NOR Gate");
+      tft.println("CMOS Inverter");
+      break;
 
-  //TTL NOT
-  case 4:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL AND Gate");
-    tft.println("TTL OR Gate");
-    tft.println("TTL NAND Gate");
-    tft.println("TTL NOR Gate");
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("TTL Inverter");
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("CMOS AND Gate");
-    tft.println("CMOS OR Gate");
-    tft.println("CMOS NAND Gate");
-    tft.println("CMOS NOR Gate");
-    tft.println("CMOS Inverter");
-  break;
+    //TTL NOT
+    case 4:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL AND Gate");
+      tft.println("TTL OR Gate");
+      tft.println("TTL NAND Gate");
+      tft.println("TTL NOR Gate");
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("TTL Inverter");
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("CMOS AND Gate");
+      tft.println("CMOS OR Gate");
+      tft.println("CMOS NAND Gate");
+      tft.println("CMOS NOR Gate");
+      tft.println("CMOS Inverter");
+      break;
 
-  //CMOS AND
-  case 5:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL AND Gate");
-    tft.println("TTL OR Gate");
-    tft.println("TTL NAND Gate");
-    tft.println("TTL NOR Gate");
-    tft.println("TTL Inverter");
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("CMOS AND Gate");
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("CMOS OR Gate");
-    tft.println("CMOS NAND Gate");
-    tft.println("CMOS NOR Gate");
-    tft.println("CMOS Inverter");
-  break;
+    //CMOS AND
+    case 5:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL AND Gate");
+      tft.println("TTL OR Gate");
+      tft.println("TTL NAND Gate");
+      tft.println("TTL NOR Gate");
+      tft.println("TTL Inverter");
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("CMOS AND Gate");
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("CMOS OR Gate");
+      tft.println("CMOS NAND Gate");
+      tft.println("CMOS NOR Gate");
+      tft.println("CMOS Inverter");
+      break;
 
-  //CMOS OR
-  case 6:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL AND Gate");
-    tft.println("TTL OR Gate");
-    tft.println("TTL NAND Gate");
-    tft.println("TTL NOR Gate");
-    tft.println("TTL Inverter");
-    tft.println("CMOS AND Gate");
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("CMOS OR Gate");
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("CMOS NAND Gate");
-    tft.println("CMOS NOR Gate");
-    tft.println("CMOS Inverter");
-  break;
+    //CMOS OR
+    case 6:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL AND Gate");
+      tft.println("TTL OR Gate");
+      tft.println("TTL NAND Gate");
+      tft.println("TTL NOR Gate");
+      tft.println("TTL Inverter");
+      tft.println("CMOS AND Gate");
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("CMOS OR Gate");
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("CMOS NAND Gate");
+      tft.println("CMOS NOR Gate");
+      tft.println("CMOS Inverter");
+      break;
 
-  //CMOS NAND
-  case 7:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL AND Gate");
-    tft.println("TTL OR Gate");
-    tft.println("TTL NAND Gate");
-    tft.println("TTL NOR Gate");
-    tft.println("TTL Inverter");
-    tft.println("CMOS AND Gate");
-    tft.println("CMOS OR Gate");
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("CMOS NAND Gate");
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("CMOS NOR Gate");
-    tft.println("CMOS Inverter");
-  break;
+    //CMOS NAND
+    case 7:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL AND Gate");
+      tft.println("TTL OR Gate");
+      tft.println("TTL NAND Gate");
+      tft.println("TTL NOR Gate");
+      tft.println("TTL Inverter");
+      tft.println("CMOS AND Gate");
+      tft.println("CMOS OR Gate");
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("CMOS NAND Gate");
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("CMOS NOR Gate");
+      tft.println("CMOS Inverter");
+      break;
 
-  //CMOS NOR
-  case 8:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL AND Gate");
-    tft.println("TTL OR Gate");
-    tft.println("TTL NAND Gate");
-    tft.println("TTL NOR Gate");
-    tft.println("TTL Inverter");
-    tft.println("CMOS AND Gate");
-    tft.println("CMOS OR Gate");
-    tft.println("CMOS NAND Gate");
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("CMOS NOR Gate");
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("CMOS Inverter");
-  break;
+    //CMOS NOR
+    case 8:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL AND Gate");
+      tft.println("TTL OR Gate");
+      tft.println("TTL NAND Gate");
+      tft.println("TTL NOR Gate");
+      tft.println("TTL Inverter");
+      tft.println("CMOS AND Gate");
+      tft.println("CMOS OR Gate");
+      tft.println("CMOS NAND Gate");
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("CMOS NOR Gate");
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("CMOS Inverter");
+      break;
 
-  //CMOS NOT
-  case 9:
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.println("TTL AND Gate");
-    tft.println("TTL OR Gate");
-    tft.println("TTL NAND Gate");
-    tft.println("TTL NOR Gate");
-    tft.println("TTL Inverter");
-    tft.println("CMOS AND Gate");
-    tft.println("CMOS OR Gate");
-    tft.println("CMOS NAND Gate");
-    tft.println("CMOS NOR Gate");
-    tft.setTextColor(ILI9341_YELLOW);
-    tft.println("CMOS Inverter");
-    tft.setTextColor(ILI9341_WHITE);
-  break;
+    //CMOS NOT
+    case 9:
+      tft.fillScreen(ILI9341_BLACK);
+      tft.setTextColor(ILI9341_WHITE);
+      tft.println("TTL AND Gate");
+      tft.println("TTL OR Gate");
+      tft.println("TTL NAND Gate");
+      tft.println("TTL NOR Gate");
+      tft.println("TTL Inverter");
+      tft.println("CMOS AND Gate");
+      tft.println("CMOS OR Gate");
+      tft.println("CMOS NAND Gate");
+      tft.println("CMOS NOR Gate");
+      tft.setTextColor(ILI9341_YELLOW);
+      tft.println("CMOS Inverter");
+      tft.setTextColor(ILI9341_WHITE);
+      break;
   }
 }
 
 
 //Testing screen
+//Will display device being tested, number of passes, fails, and previous result
+void testScreen(int testNum) {
+  int leave = 0;
+  int passed;
+  int failed;
+  bool prev;
+  tft.setCursor(0, 0);
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setTextSize(2);
+  //runs the proper testing procedure and display
+  switch (testNum) {
+    case 0:
+      passed = 0;
+      failed = 0;
+      tft.println("Press OK to test TTL And Gate");
+     // delay(5000);  //allow for button debouncing
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+
+    case 1:
+      failed = 0;
+      passed = 0;
+      tft.println("Press OK to test TTL Or Gate");
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+
+    case 2:
+     
+      tft.println("Press OK to test TTL NAND Gate");
+      failed = 0;
+      passed = 0;
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+
+    case 3:
+     
+      tft.println("Press OK to test TTL NOR Gate");
+      failed = 0;
+      passed = 0;
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+
+    case 4:
+     
+      tft.println("Press OK to test TTL Inverter");
+      failed = 0;
+      passed = 0;
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+
+    case 5:
+     
+      tft.println("Press OK to test CMOS AND Gate");
+      failed = 0;
+      passed = 0;
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+
+    case 6:
+   
+      tft.println("Press OK to test CMOS OR Gate");
+      failed = 0;
+      passed = 0;
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+
+    case 7:
+     
+      tft.println("Press OK to test CMOS NAND Gate");
+      failed = 0;
+      passed = 0;
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+
+    case 8:
+     
+      tft.println("Press OK to test CMOS NOR Gate");
+      failed = 0;
+      passed = 0;
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+
+    case 9:
+    
+      tft.println("Press OK to test CMOS Inverter");
+      failed = 0;
+      passed = 0;
+      while (1) {
+        if (digitalRead(OK) == LOW) {
+          tft.fillScreen(ILI9341_BLACK);
+          //prev = test(8);
+          if (prev == 0)
+            failed++;
+          if (prev == 1)
+            passed++;
+          tft.setCursor(0, 0);
+          tft.setTextSize(2);
+          tft.printf("Passed: %d\n", passed);
+          tft.printf("Failed: %d\n", failed);
+          if (prev == 0)
+            tft.println("Previous: Failed");
+          if (prev == 1)
+            tft.println("Previous: Passed");
+          while (1) {
+            if (digitalRead(OK) == LOW)
+              break;
+            if (digitalRead(BACK) == LOW) {
+              leave = 1;
+              break;
+            }
+          }
+        }
+        if (leave == 1) {
+          leave = 0;
+          highlight(highlighted);
+          break;
+        }
+      }
+      break;
+  }
+}
