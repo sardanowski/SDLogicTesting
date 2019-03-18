@@ -2,8 +2,8 @@
 //#include <USI_TWI_Master.h>
 #include <Arduino.h>
 #include <Wire.h>
-#include <menu.h>
-#include <menuIO/adafruitGfxOut.h>
+//#include <menu.h>
+//#include <menuIO/adafruitGfxOut.h>
 #include "Adafruit_MCP23017.h"
 #include "Adafruit_ILI9341.h"
 #include "SPI.h"
@@ -11,7 +11,6 @@
 #include "Adafruit_ILI9341.h"
 #include "Print.h"
 #include <PinChangeInterruptBoards.h>
-using namespace Menu;
 
 
 //display pins
@@ -23,15 +22,22 @@ using namespace Menu;
 //Pin expander pins
 #define SDA A4
 #define SCL A5
-
+//dispay declaration
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
+//Pin expander declaration
 Adafruit_MCP23017 mcp;
 
 byte gateType = 8; //default gate to AND
 //void TTLinputPins(byte gateType = 8); //default the gates to AND
 //void CMOSinputPins(byte gateType = 8);
-//Pushbutton setup
-const int PIN_BUTTON_TEST = 8;
+//Pushbutton pin assignments
+const int OK = 8;
+const int DOWN = 6;
+const int BACK = 5;
+
+
+//UI Global variables
+int highlighted = 0;
 
 byte invert = 0;                   //used to tell if it is a NOT gate (not used yet)
 byte numberGates = invert ? 6 : 4; //Used for the number of gates being tested
@@ -72,9 +78,15 @@ void setup() {
 //  nav.begin()
 //  idleTask=idle;
   //mainMenu[1].disable();
-  //Pushbutton stuff, active low trigger
-  pinMode(PIN_BUTTON_TEST, INPUT);
-  digitalWrite(PIN_BUTTON_TEST, HIGH);
+  //Pushbuttons set to inputs
+  pinMode(OK, INPUT);
+  pinMode(DOWN, INPUT);
+  pinMode(BACK, INPUT);
+  //Pushbuttons are set to an active low trigger
+  digitalWrite(OK, HIGH);
+  digitalWrite(DOWN, HIGH);
+  digitalWrite(BACK, HIGH);
+  
   tft.fillScreen(ILI9341_BLACK);
   tft.setTextColor(ILI9341_RED,ILI9341_BLACK);
   tft.println("Menu test");
@@ -89,6 +101,18 @@ void loop() {
   tft.setTextColor(ILI9341_BLACK);  //Display stuff
   tft.setCursor(0, 0);
   tft.println("start");
+  //Display main menu  
+  highlight(highlighted);
+  while (1) {
+  
+    if (digitalRead(DOWN) == LOW) {
+      highlighted++;
+      if (highlighted > 9) 
+        highlighted = 0; 
+       highlight(highlighted);
+    }
+    
+  }
 
   gateType = 14;             //CHANGE THIS TO CHANGE GATE TYPE
   TTLinputPins(gateType);   //selecting gate type here
@@ -356,3 +380,192 @@ void CMOSinputPins(byte gatevalue)
 void copy(byte* src, byte* dst, int len) {
   memcpy(dst, src, sizeof(src[0])*len);
 }
+
+//Function to highlight text for UI
+void highlight(int x) {
+  tft.setCursor(0,0);
+  tft.setTextSize(2);
+  switch (x) {
+  //TTL And highlighted
+  case 0:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("TTL AND Gate");
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL OR Gate");
+    tft.println("TTL NAND Gate");
+    tft.println("TTL NOR Gate");
+    tft.println("TTL Inverter");
+    tft.println("CMOS AND Gate");
+    tft.println("CMOS OR Gate");
+    tft.println("CMOS NAND Gate");
+    tft.println("CMOS NOR Gate");
+    tft.println("CMOS Inverter");
+    break;
+
+   //TTL OR Highlighted
+   case 1:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL AND Gate");
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("TTL OR Gate");
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL NAND Gate");
+    tft.println("TTL NOR Gate");
+    tft.println("TTL Inverter");
+    tft.println("CMOS AND Gate");
+    tft.println("CMOS OR Gate");
+    tft.println("CMOS NAND Gate");
+    tft.println("CMOS NOR Gate");
+    tft.println("CMOS Inverter");
+   break;
+
+    //TTL NAND Highlighted
+   case 2:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL AND Gate");
+    tft.println("TTL OR Gate");
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("TTL NAND Gate");
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL NOR Gate");
+    tft.println("TTL Inverter");
+    tft.println("CMOS AND Gate");
+    tft.println("CMOS OR Gate");
+    tft.println("CMOS NAND Gate");
+    tft.println("CMOS NOR Gate");
+    tft.println("CMOS Inverter");
+   break;
+
+  //TTL NOR HIghlighted
+   case 3:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL AND Gate");
+    tft.println("TTL OR Gate");
+    tft.println("TTL NAND Gate");
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("TTL NOR Gate");
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL Inverter");
+    tft.println("CMOS AND Gate");
+    tft.println("CMOS OR Gate");
+    tft.println("CMOS NAND Gate");
+    tft.println("CMOS NOR Gate");
+    tft.println("CMOS Inverter");
+  break;
+
+  //TTL NOT
+  case 4:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL AND Gate");
+    tft.println("TTL OR Gate");
+    tft.println("TTL NAND Gate");
+    tft.println("TTL NOR Gate");
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("TTL Inverter");
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("CMOS AND Gate");
+    tft.println("CMOS OR Gate");
+    tft.println("CMOS NAND Gate");
+    tft.println("CMOS NOR Gate");
+    tft.println("CMOS Inverter");
+  break;
+
+  //CMOS AND
+  case 5:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL AND Gate");
+    tft.println("TTL OR Gate");
+    tft.println("TTL NAND Gate");
+    tft.println("TTL NOR Gate");
+    tft.println("TTL Inverter");
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("CMOS AND Gate");
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("CMOS OR Gate");
+    tft.println("CMOS NAND Gate");
+    tft.println("CMOS NOR Gate");
+    tft.println("CMOS Inverter");
+  break;
+
+  //CMOS OR
+  case 6:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL AND Gate");
+    tft.println("TTL OR Gate");
+    tft.println("TTL NAND Gate");
+    tft.println("TTL NOR Gate");
+    tft.println("TTL Inverter");
+    tft.println("CMOS AND Gate");
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("CMOS OR Gate");
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("CMOS NAND Gate");
+    tft.println("CMOS NOR Gate");
+    tft.println("CMOS Inverter");
+  break;
+
+  //CMOS NAND
+  case 7:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL AND Gate");
+    tft.println("TTL OR Gate");
+    tft.println("TTL NAND Gate");
+    tft.println("TTL NOR Gate");
+    tft.println("TTL Inverter");
+    tft.println("CMOS AND Gate");
+    tft.println("CMOS OR Gate");
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("CMOS NAND Gate");
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("CMOS NOR Gate");
+    tft.println("CMOS Inverter");
+  break;
+
+  //CMOS NOR
+  case 8:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL AND Gate");
+    tft.println("TTL OR Gate");
+    tft.println("TTL NAND Gate");
+    tft.println("TTL NOR Gate");
+    tft.println("TTL Inverter");
+    tft.println("CMOS AND Gate");
+    tft.println("CMOS OR Gate");
+    tft.println("CMOS NAND Gate");
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("CMOS NOR Gate");
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("CMOS Inverter");
+  break;
+
+  //CMOS NOT
+  case 9:
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.println("TTL AND Gate");
+    tft.println("TTL OR Gate");
+    tft.println("TTL NAND Gate");
+    tft.println("TTL NOR Gate");
+    tft.println("TTL Inverter");
+    tft.println("CMOS AND Gate");
+    tft.println("CMOS OR Gate");
+    tft.println("CMOS NAND Gate");
+    tft.println("CMOS NOR Gate");
+    tft.setTextColor(ILI9341_YELLOW);
+    tft.println("CMOS Inverter");
+    tft.setTextColor(ILI9341_WHITE);
+  break;
+  }
+}
+
+
+//Testing screen
