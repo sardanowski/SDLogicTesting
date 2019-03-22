@@ -66,8 +66,8 @@ void loop() {
   tft.setCursor(0, 0);
   tft.println("start");
 
-  gateType = 14;             //CHANGE THIS TO CHANGE GATE TYPE
-  CMOSinputPins(gateType);   //selecting gate type here
+  gateType = 8;             //CHANGE THIS TO CHANGE GATE TYPE
+  TTLinputPins(gateType);   //selecting gate type here
 
   delay(1000);
   bool result = test(numberGates); //testing this many gates && need to use this as output
@@ -84,12 +84,12 @@ bool check(byte ar[], int n)
 //checking if all the elements in the array are the same
 //fault checking
 {
-  bool flag = 0;
+  bool flag = 1;
 
   for (byte i = 0; i < n - 1; i++)
   {
     if (ar[i] != ar[i + 1])
-      flag = 1;
+      flag = 0;
   }
 
   return flag;
@@ -215,17 +215,6 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
     }
     increment(values);
   }
-
-  //  tft.fillScreen(ILI9341_WHITE);
-  //  tft.setCursor(0, 0);
-  //  tft.setTextSize(4);
-  //  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
-  //  tft.println(output1);
-  //  tft.println(output2);
-  //  tft.println(x);
-  //  delay(500);
-  //  //  tft.println(x);
-
   byte retval = check(x, sizeof(x)) ? x[0] : -1;
 
   return retval;
@@ -254,16 +243,6 @@ byte check_Invert(byte output1, byte outpin1, byte input1)
     }
     increment(values);
   }
-
-  //  tft.fillScreen(ILI9341_WHITE);
-  //  tft.setCursor(0, 0);
-  //  tft.setTextSize(4);
-  //  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
-  //  tft.println(output1);
-  //  tft.println(output2);
-  //  tft.println(x);
-  //  delay(500);
-  //  //  tft.println(x);
 
   byte retval = check(x, sizeof(x)) ? x[0] : -1;
 
