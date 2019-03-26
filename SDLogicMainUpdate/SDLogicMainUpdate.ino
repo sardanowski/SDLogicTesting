@@ -32,7 +32,11 @@ byte gateType = 8; //default gate to AND
 //Pushbutton pin assignments
 const int OK = 8;
 const int DOWN = 6;
-const int BACK = 5;
+const int UP = 5;
+const int BACK = 4;
+const int RESET = 3;
+const int LOWBAT = 15;
+const int ZIFOFF = 14;
 
 
 //UI Global variables
@@ -77,10 +81,19 @@ void setup() {
   pinMode(OK, INPUT);
   pinMode(DOWN, INPUT);
   pinMode(BACK, INPUT);
+  pinMode(ZIFOFF, OUTPUT);
   //Pushbuttons are set to an active low trigger
   digitalWrite(OK, HIGH);
   digitalWrite(DOWN, HIGH);
   digitalWrite(BACK, HIGH);
+  digitalWrite(UP, HIGH);
+  digitalWrite(RESET, HIGH);
+
+  //Turns off power to the ZIF Socket until testing begins
+  digitalWrite(ZIFOFF, LOW);
+
+  //Low battery indicator
+  digitalWrite(LOWBAT, LOW);
 
   tft.fillScreen(ILI9341_BLACK);
   tft.setTextColor(ILI9341_RED, ILI9341_BLACK);
@@ -108,24 +121,23 @@ void loop() {
     }
     if (digitalRead(OK) == LOW)
       testScreen(highlighted);
-
-  gateType = 14;             //CHANGE THIS TO CHANGE GATE TYPE
-  CMOSinputPins(gateType);   //selecting gate type here
-
-  gateType = 14;             //CHANGE THIS TO CHANGE GATE TYPE
-  TTLinputPins(gateType);   //selecting gate type here
-  //if ( PIN_BUTTON_TEST == LOW) {
-  delay(1000);
-  bool result = test(numberGates); //testing this many gates && need to use this as output
-  outputResult(result);            //outputting to display
-
-  tft.fillScreen(ILI9341_WHITE);
-  tft.setTextSize(5);
-  tft.setCursor(0, 0);   //Display stuff
-  tft.println("DONE");
-  delay(1000);
-  // }
-  // delay(1000);
+    //This is in each CMOS with gate type then run test w/ number of gates
+    //CMOSinputPins(gateType);   //selecting gate type here
+    //This in each TTL w/ gate type, then run test w/ number of gates, inverter =6, else = 4
+    // TTLinputPins(gateType);   //selecting gate type here
+    //if ( PIN_BUTTON_TEST == LOW) {
+    // delay(1000);
+    //bool result = test(numberGates); //testing this many gates && need to use this as output
+    // outputResult(result);            //outputting to display
+    /*
+      tft.fillScreen(ILI9341_WHITE);
+      tft.setTextSize(5);
+      tft.setCursor(0, 0);   //Display stuff
+      tft.println("DONE");
+      delay(1000);
+      // }
+      // delay(1000);*/
+  }
 }
 
 bool check(byte ar[], int n)
@@ -143,11 +155,11 @@ bool check(byte ar[], int n)
   return flag;
 }
 
-byte* increment(byte* A) 
+void increment(byte* A, byte len)
 //used to increment array for fault checking
 {
   boolean carry = true;
-  for (byte i = (sizeof(A) - 1); i >= 0; i--) {
+  for (int i = (len - 1); i >= 0; i--) {
     if (carry) {
       if (A[i] == 0) {
         A[i] = 1;
@@ -159,9 +171,9 @@ byte* increment(byte* A)
       }
     }
   }
-
-  return A;
+  return;
 }
+
 
 void outputResult(bool result)
 //outputting the pass fail
@@ -244,10 +256,12 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
   mcp.digitalWrite(outpin1, output1);                                   //writing output1 to outpin1
   mcp.digitalWrite(outpin2, output2);                                   //writing output2 to outpin2
 
-  byte x[256];
+  byte x[4];
   //check for shorts here complicated
 
-  byte values[8];
+  byte values[2] = {0, 0};
+  byte len = 2;
+  byte sendval = 0;
   byte gate = 0;
   byte inc = 0;
   for (inc = 0; inc < sizeof(x); inc++) {
@@ -256,24 +270,21 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
 
       if (pinOut == outpin1 || pinOut == outpin2) continue;
 
-      mcp.digitalWrite(pinOut, values[gate]);                                   //writing output1 to outpin1
-
-      delay(100);                                                           // Make sure the signal has time to propogate through the gate.
-      x[gate] = mcp.digitalRead(input1);                               //reading from the input pin
+      mcp.digitalWrite(pinOut, values[++sendval]);                                   //writing output1 to outpin1
+      if (sendval > 1) sendval = 0;
     }
-    increment(values);
+    delay(5);                                                           // Make sure the signal has time to propogate through the gate.
+    x[inc] = mcp.digitalRead(input1);                               //reading from the input pin
+    increment(&values[0], len);
+    //                      tft.fillScreen(ILI9341_WHITE);
+    //                  tft.setCursor(0, 0);
+    //                  tft.setTextSize(4);
+    //                  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
+    //                  tft.println(values[0]);
+    //                  tft.println(values[1]);     //testing outputs
+    //                  tft.println(sizeof(x));
+    //                  tft.println(inc);
   }
-
-  //  tft.fillScreen(ILI9341_WHITE);
-  //  tft.setCursor(0, 0);
-  //  tft.setTextSize(4);
-  //  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
-  //  tft.println(output1);
-  //  tft.println(output2);
-  //  tft.println(x);
-  //  delay(500);
-  //  //  tft.println(x);
-
   byte retval = check(x, sizeof(x)) ? x[0] : -1;
 
   return retval;
@@ -286,7 +297,7 @@ byte check_Invert(byte output1, byte outpin1, byte input1)
 
   byte x[64];
   //check for shorts here complicated
-  byte values[6] = {0, 0, 0, 0, 0, 0};
+  byte values = 0;
   byte gate = 0;
   byte inc = 0;
   for (inc = 0; inc < sizeof(x); inc++) {
@@ -295,23 +306,13 @@ byte check_Invert(byte output1, byte outpin1, byte input1)
 
       if (pinOut == outpin1) continue;
 
-      mcp.digitalWrite(pinOut, values[gate]);                                   //writing output1 to outpin1
+      mcp.digitalWrite(pinOut, values);                                   //writing output1 to outpin1
 
-      delay(100);                                                           // Make sure the signal has time to propogate through the gate.
-      x[gate] = mcp.digitalRead(input1);                               //reading from the input pin
     }
-    increment(values);
+    delay(10);                                                           // Make sure the signal has time to propogate through the gate.
+    x[inc] = mcp.digitalRead(input1);                               //reading from the input pin
+    values++;
   }
-
-  //  tft.fillScreen(ILI9341_WHITE);
-  //  tft.setCursor(0, 0);
-  //  tft.setTextSize(4);
-  //  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
-  //  tft.println(output1);
-  //  tft.println(output2);
-  //  tft.println(x);
-  //  delay(500);
-  //  //  tft.println(x);
 
   byte retval = check(x, sizeof(x)) ? x[0] : -1;
 
@@ -672,11 +673,16 @@ void testScreen(int testNum) {
       passed = 0;
       failed = 0;
       tft.println("Press OK to test TTL And Gate");
-     // delay(5000);  //allow for button debouncing
+      // delay(5000);  //allow for button debouncing
       while (1) {
         if (digitalRead(OK) == LOW) {
           tft.fillScreen(ILI9341_BLACK);
-          //prev = test(8);
+          gateType = 8;
+          TTLinputPins(gateType);
+          //prev = test(4);
+          prev = test(8);
+          digitalWrite(ZIFOFF,HIGH);
+          delay(100);
           if (prev == 0)
             failed++;
           if (prev == 1)
@@ -689,6 +695,7 @@ void testScreen(int testNum) {
             tft.println("Previous: Failed");
           if (prev == 1)
             tft.println("Previous: Passed");
+          digitalWrite(ZIFOFF, LOW);
           while (1) {
             if (digitalRead(OK) == LOW)
               break;
@@ -744,7 +751,7 @@ void testScreen(int testNum) {
       break;
 
     case 2:
-     
+
       tft.println("Press OK to test TTL NAND Gate");
       failed = 0;
       passed = 0;
@@ -782,7 +789,7 @@ void testScreen(int testNum) {
       break;
 
     case 3:
-     
+
       tft.println("Press OK to test TTL NOR Gate");
       failed = 0;
       passed = 0;
@@ -820,7 +827,7 @@ void testScreen(int testNum) {
       break;
 
     case 4:
-     
+
       tft.println("Press OK to test TTL Inverter");
       failed = 0;
       passed = 0;
@@ -858,7 +865,7 @@ void testScreen(int testNum) {
       break;
 
     case 5:
-     
+
       tft.println("Press OK to test CMOS AND Gate");
       failed = 0;
       passed = 0;
@@ -896,7 +903,7 @@ void testScreen(int testNum) {
       break;
 
     case 6:
-   
+
       tft.println("Press OK to test CMOS OR Gate");
       failed = 0;
       passed = 0;
@@ -934,7 +941,7 @@ void testScreen(int testNum) {
       break;
 
     case 7:
-     
+
       tft.println("Press OK to test CMOS NAND Gate");
       failed = 0;
       passed = 0;
@@ -972,7 +979,7 @@ void testScreen(int testNum) {
       break;
 
     case 8:
-     
+
       tft.println("Press OK to test CMOS NOR Gate");
       failed = 0;
       passed = 0;
@@ -1010,7 +1017,7 @@ void testScreen(int testNum) {
       break;
 
     case 9:
-    
+
       tft.println("Press OK to test CMOS Inverter");
       failed = 0;
       passed = 0;
