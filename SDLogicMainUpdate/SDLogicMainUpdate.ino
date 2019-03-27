@@ -102,28 +102,28 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   //Display main menu
-while(1){
-  if (digitalRead(DOWN) == LOW) {
-    highlighted++;
-    if (highlighted > 9)
-      highlighted = 0;
-    highlight(highlighted);
-  }
-  if (digitalRead(UP) == LOW) {
-    highlighted--;
-    if (highlighted < 0)
-      highlighted = 9;
-    highlight(highlighted);
-  }
-  if (digitalRead(OK) == LOW)
-    testScreen(highlighted);
+  while (1) {
+    if (digitalRead(DOWN) == LOW) {
+      highlighted++;
+      if (highlighted > 9)
+        highlighted = 0;
+      highlight(highlighted);
+    }
+    if (digitalRead(UP) == LOW) {
+      highlighted--;
+      if (highlighted < 0)
+        highlighted = 9;
+      highlight(highlighted);
+    }
+    if (digitalRead(OK) == LOW)
+      testScreen(highlighted);
 
-  if (digitalRead(LOWBAT) == HIGH && lowBattery == 0) {
-    displayLowBat();
-    lowBattery++;
-    highlight(highlighted);
+    if (digitalRead(LOWBAT) == HIGH && lowBattery == 0) {
+      displayLowBat();
+      lowBattery++;
+      highlight(highlighted);
+    }
   }
-}
 }
 bool check(byte ar[], int n)
 //checking if all the elements in the array are the same
