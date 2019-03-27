@@ -84,6 +84,7 @@ void setup() {
   //Low battery indicator set to input
   pinMode(LOWBAT, INPUT);
 
+
   //Pushbuttons are set to an active low trigger
   digitalWrite(OK, HIGH);
   digitalWrite(DOWN, HIGH);
@@ -94,8 +95,8 @@ void setup() {
   //Turns off power to the ZIF Socket until testing begins
   digitalWrite(ZIFOFF, LOW);
 
-  //Low battery indicator
-  digitalWrite(LOWBAT, LOW);
+
+  
   highlight(highlighted);
 }
 
@@ -118,11 +119,13 @@ void loop() {
     if (digitalRead(OK) == LOW)
       testScreen(highlighted);
 
-    if (digitalRead(LOWBAT) == HIGH && lowBattery == 0) {
+    if (digitalRead(LOWBAT) == LOW && lowBattery == 0) {
       displayLowBat();
       lowBattery++;
       highlight(highlighted);
     }
+    if ((digitalRead(RESET) == LOW) && (digitalRead(BACK) == LOW))
+      displaycoders();
   }
 }
 bool check(byte ar[], int n)
@@ -420,6 +423,17 @@ void CMOSinputPins(byte gatevalue)
   numberGates = invert ? 6 : 4;
   return;
 }
+void displaycoders() {
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setTextSize(2);
+  tft.setCursor(0,0);
+  tft.println("Logic Testing device MTU 2018-2019");
+  tft.println("Coded by:\nStephen Ardanowski\nDerek Wing");
+  tft.println("Board design by:\nAlexis Schroeder\nSpencer Banaszak");
+  tft.println("Manual by:\nAbhilash Vinod");
+  delay(10000);
+  return;
+}
 
 // Function to copy 'len' elements from 'src' to 'dst'
 void copy(byte* src, byte* dst, int len) {
@@ -472,6 +486,7 @@ void highlight(int x) {
   if (x == 9) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 8) tft.setTextColor(ILI9341_WHITE);
   tft.println("CMOS Inverter");
+  tft.setTextColor(ILI9341_WHITE);
   loop();
 }
 
@@ -484,7 +499,7 @@ void testingGates() {
   while (1) {
     if (digitalRead(OK) == LOW) {
       lowBattery = 0;
-      if (digitalRead(LOWBAT) == HIGH && lowBattery == 0) {
+      if (digitalRead(LOWBAT) == LOW && lowBattery == 0 ) {
         displayLowBat();
         lowBattery++;
       }
@@ -547,35 +562,35 @@ void testScreen(int testNum) {
   //runs the proper testing procedure and display
   switch (testNum) {
     case 0:
-      tft.println("Press OK to \ntest TTL And Gate");
+      tft.println("Press OK to \ntest TTL AND\nGate");
       gateType = 8;
       TTLinputPins(gateType);
       testingGates();
       break;
 
     case 1:
-      tft.println("Press OK to \ntest TTL OR Gate");
+      tft.println("Press OK to \ntest TTL OR\nGate");
       gateType = 14;
       TTLinputPins(gateType);
       testingGates();
       break;
 
     case 2://NAND
-      tft.println("Press OK to \ntest TTL Nand Gate");
+      tft.println("Press OK to\ntest TTL NAND\nGate");
       gateType = 7;
       TTLinputPins(gateType);
       testingGates();
       break;
 
     case 3://NOR
-      tft.println("Press OK to \ntest TTL Nor Gate");
+      tft.println("Press OK to\ntest TTL NOR\nGate");
       gateType = 1;
       TTLinputPins(gateType);
       testingGates();
       break;
 
     case 4:
-      tft.println("Press OK to \ntest TTL Inverter");
+      tft.println("Press OK to\ntest TTL\nInverter");
       gateType = 0;
       TTLinputPins(gateType);
       testingGates();
@@ -583,14 +598,14 @@ void testScreen(int testNum) {
 
     case 5:
 
-      tft.println("Press OK to test CMOS AND Gate");
+      tft.println("Press OK to\ntest CMOS AND\nGate");
       gateType = 8;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
     case 6:
-      tft.println("Press OK to test CMOS OR Gate");
+      tft.println("Press OK to\ntest CMOS OR\nGate");
       gateType = 14;
       CMOSinputPins(gateType);
       testingGates();
@@ -598,7 +613,7 @@ void testScreen(int testNum) {
 
     case 7:
 
-      tft.println("Press OK to test CMOS NAND Gate");
+      tft.println("Press OK to\ntest CMOS\nNAND Gate");
       gateType = 7;
       CMOSinputPins(gateType);
       testingGates();
@@ -606,15 +621,14 @@ void testScreen(int testNum) {
 
     case 8:
 
-      tft.println("Press OK to test CMOS NOR Gate");
+      tft.println("Press OK to\ntest CMOS NOR\nGate");
       gateType = 1;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
     case 9:
-
-      tft.println("Press OK to test CMOS Inverter");
+      tft.println("Press OK to\ntest CMOS\nInverter");
       gateType = 0;
       CMOSinputPins(gateType);
       testingGates();
