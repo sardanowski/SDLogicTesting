@@ -11,12 +11,7 @@
 //display pins
 #define TFT_DC 9
 #define TFT_CS 10
-#define TFT_MOSI 11
-#define TFT_CLK 13
 
-//Pin expander pins
-#define SDA A4
-#define SCL A5
 //dispay declaration
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 //Pin expander declaration
@@ -42,47 +37,39 @@ const int ZIFOFF = 14;
 //UI Global variables
 int highlighted = 0;
 
-byte invert = 0;                   //used to tell if it is a NOT gate (not used yet)
-byte cont = 0;
+byte invert = 0;                   //used to tell if it is a NOT gate
 byte numberGates = invert ? 6 : 4; //Used for the number of gates being tested
 byte inPin[16];                    //array of input PINS to use
 byte outPin[16];                   //array of output PINS to use
 
 //Input/output pins for different gates.
 //DO NOT REMOVE OR CHANGE
-byte tempIN1[] = {2, 4, 6, 9, 11, 13};        //NOT GATES  //DOUBLE CHECK THESE GATES!@!@!@!@!@!@!@!@!@!@!@!@!@!@
-byte tempOUT1[] = {3, 5, 7, 8, 10, 12};
+byte NOTIN[] = {2, 4, 6, 9, 11, 13};        //NOT GATES Pin Assignement
+byte NOTOUT[] = {3, 5, 7, 8, 10, 12};
 
-byte tempIN2[] = {4, 7, 8, 11};               //TTL NOR  //fixed
-byte tempOUT2[] = {2, 3, 5, 6, 9, 10, 12, 13};
+byte TTLNORIN[] = {4, 7, 8, 11};               //TTL NOR  Pin Assignement
+byte TTLNOROUT[] = {2, 3, 5, 6, 9, 10, 12, 13};
 
-byte tempIN3[] = {2, 5, 10, 13};               //REST OF TTL //fixed
-byte tempOUT3[] = {3, 4, 6, 7, 8, 9, 11, 12};
+byte TTLIN[] = {2, 5, 10, 13};               //REST OF TTL Pin Assignement
+byte TTLOUT[] = {3, 4, 6, 7, 8, 9, 11, 12};
 
-byte tempIN4[] = {4, 5, 10, 11};               //CMOS GATES  //fixed
-byte tempOUT4[] = {2, 3, 6, 7, 8, 9, 12, 13};
-short lowBattery = 0;
+byte CMOSIN[] = {4, 5, 10, 11};               //CMOS GATES  Pin Assignement
+byte CMOSOUT[] = {2, 3, 6, 7, 8, 9, 12, 13};
 
-void setup() {
-  //put your setup code here, to run once:
-  //initialize SPI AND I2C
-
-  //I2C
+void setup()
+//Initializing I2C, SPI, and Pins on Pro Trinket
+{
   Serial.begin(9600);
-  //TinyWireM.begin();
   Wire.begin();
   mcp.begin();              //using default address of 0 for MCP_23017
   tft.begin();
+
   //Pushbuttons set to inputs
   pinMode(OK, INPUT);
   pinMode(DOWN, INPUT);
   pinMode(BACK, INPUT);
   pinMode(RESET, INPUT);
-
-  //Relay control is an output
-  pinMode(ZIFOFF, OUTPUT);
-  //Low battery indicator set to input
-  pinMode(LOWBAT, INPUT);
+  pinMode(UP, INPUT);
 
 
   //Pushbuttons are set to an active low trigger
@@ -92,45 +79,72 @@ void setup() {
   digitalWrite(UP, HIGH);
   digitalWrite(RESET, HIGH);
 
+  //Relay control is an output
+  pinMode(ZIFOFF, OUTPUT);
+
   //Turns off power to the ZIF Socket until testing begins
   digitalWrite(ZIFOFF, LOW);
 
+  //Low battery indicator set to input
+  pinMode(LOWBAT, INPUT);
 
-  
+  //Low battery indicator
+  digitalWrite(LOWBAT, LOW);
+  tft.setCursor(0, 0);
+  tft.setTextSize(3);
+  tft.fillScreen(ILI9341_BLACK);
   highlight(highlighted);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-  //Display main menu
+void loop()
+//This is the main loop used to navigate the menu with the push buttons
+{
+
   while (1) {
-    if (digitalRead(DOWN) == LOW) {
+    if (digitalRead(DOWN) == LOW) {  //When down pressed highlight the next gate, loop around if at bottom
+      delay(100);
       highlighted++;
       if (highlighted > 9)
         highlighted = 0;
       highlight(highlighted);
     }
-    if (digitalRead(UP) == LOW) {
+    if (digitalRead(UP) == LOW) {    //When Up pressed highlight the previous gate, loop around if at top
+      delay(100);
       highlighted--;
       if (highlighted < 0)
         highlighted = 9;
       highlight(highlighted);
     }
-    if (digitalRead(OK) == LOW)
+    if (digitalRead(OK) == LOW) {     //When okay is pressed, move to testScreen menu and loop
+      delay(100);
       testScreen(highlighted);
-
-    if (digitalRead(LOWBAT) == LOW && lowBattery == 0) {
-      displayLowBat();
-      lowBattery++;
+    }
+    if (batteryCheck()) {
       highlight(highlighted);
     }
     if ((digitalRead(RESET) == LOW) && (digitalRead(BACK) == LOW))
       displaycoders();
   }
 }
+
+bool batteryCheck()
+//Used to check if the battery is low or not
+{
+  if (digitalRead(LOWBAT) == LOW) {
+    tft.fillScreen(ILI9341_RED);
+    tft.setCursor(0, 0);
+    tft.setTextSize(2);
+    tft.println("LOW BATTERY");
+    tft.println("PLEASE CHARGE");
+    tft.println("TO RESUME TESTING");
+    while (digitalRead(LOWBAT) == HIGH) {};
+    return true;
+  }
+  return false;
+}
 bool check(byte ar[], int n)
 //checking if all the elements in the array are the same
-//fault checking
+//This is used to check the array of results from fault checking
 {
   bool flag = 1;
 
@@ -144,7 +158,7 @@ bool check(byte ar[], int n)
 }
 
 void increment(byte* A, byte len)
-//used to increment array for fault checking
+//used to increment binary array for fault checking
 {
   boolean carry = true;
   for (int i = (len - 1); i >= 0; i--) {
@@ -334,36 +348,36 @@ void TTLinputPins(byte gatevalue)
     case 0://NOT
       gateType = 0;
       invert = 1;
-      copy(tempIN1, inPin, sizeof(tempIN1));
-      copy(tempOUT1, outPin, sizeof(tempOUT1));
+      copy(NOTIN, inPin, sizeof(NOTIN));
+      copy(NOTOUT, outPin, sizeof(NOTOUT));
       assignInputs();
       break;
 
     case 1://NOR
       gateType = 1;
-      copy(tempIN2, inPin, sizeof(tempIN2));
-      copy(tempOUT2, outPin, sizeof(tempOUT2));
+      copy(TTLNORIN, inPin, sizeof(TTLNORIN));
+      copy(TTLNOROUT, outPin, sizeof(TTLNOROUT));
       assignInputs();
       break;
 
     case 7: //NAND
       gateType = 7;
-      copy(tempIN3, inPin, sizeof(tempIN3));
-      copy(tempOUT3, outPin, sizeof(tempOUT3));
+      copy(TTLIN, inPin, sizeof(TTLIN));
+      copy(TTLOUT, outPin, sizeof(TTLOUT));
       assignInputs();
       break;
 
     case 8: //AND GATE
       gateType = 8;
-      copy(tempIN3, inPin, sizeof(tempIN3));
-      copy(tempOUT3, outPin, sizeof(tempOUT3));
+      copy(TTLIN, inPin, sizeof(TTLIN));
+      copy(TTLOUT, outPin, sizeof(TTLOUT));
       assignInputs();
       break;
 
     case 14://OR GATE
       gateType = 14;
-      copy(tempIN3, inPin, sizeof(tempIN3));
-      copy(tempOUT3, outPin, sizeof(tempOUT3));
+      copy(TTLIN, inPin, sizeof(TTLIN));
+      copy(TTLOUT, outPin, sizeof(TTLOUT));
       assignInputs();
       break;
 
@@ -384,36 +398,36 @@ void CMOSinputPins(byte gatevalue)
     case 0://NOT
       gateType = 0;
       invert = 1;
-      copy(tempIN1, inPin, sizeof(tempIN1));
-      copy(tempOUT1, outPin, sizeof(tempOUT1));
+      copy(NOTIN, inPin, sizeof(NOTIN));
+      copy(NOTOUT, outPin, sizeof(NOTOUT));
       assignInputs();
       break;
 
     case 1://NOR
       gateType = 1;
-      copy(tempIN4, inPin, sizeof(tempIN4));
-      copy(tempOUT4, outPin, sizeof(tempOUT4));
+      copy(CMOSIN, inPin, sizeof(CMOSIN));
+      copy(CMOSOUT, outPin, sizeof(CMOSOUT));
       assignInputs();
       break;
 
     case 7: //NAND
       gateType = 7;
-      copy(tempIN4, inPin, sizeof(tempIN4));
-      copy(tempOUT4, outPin, sizeof(tempOUT4));
+      copy(CMOSIN, inPin, sizeof(CMOSIN));
+      copy(CMOSOUT, outPin, sizeof(CMOSOUT));
       assignInputs();
       break;
 
     case 8: //AND GATE
       gateType = 8;
-      copy(tempIN4, inPin, sizeof(tempIN4));
-      copy(tempOUT4, outPin, sizeof(tempOUT4));
+      copy(CMOSIN, inPin, sizeof(CMOSIN));
+      copy(CMOSOUT, outPin, sizeof(CMOSOUT));
       assignInputs();
       break;
 
     case 14://OR GATE
       gateType = 14;
-      copy(tempIN4, inPin, sizeof(tempIN4));
-      copy(tempOUT4, outPin, sizeof(tempOUT4));
+      copy(CMOSIN, inPin, sizeof(CMOSIN));
+      copy(CMOSOUT, outPin, sizeof(CMOSOUT));
       assignInputs();
       break;
 
@@ -440,22 +454,10 @@ void copy(byte* src, byte* dst, int len) {
   memcpy(dst, src, sizeof(src[0])*len);
 }
 
-void displayLowBat() {
-  tft.fillScreen(ILI9341_RED);
-  tft.setCursor(0, 0);
-  tft.setTextSize(2);
-  tft.println("LOW BATTERY");
-  tft.println("PLEASE RECHARGE");
-  tft.println("Returning in 5s");
-  delay(5000);
-  return;
-}
-
 //Function to highlight text for UI
 void highlight(int x) {
   tft.setCursor(0, 0);
   tft.setTextSize(3);
-  tft.fillScreen(ILI9341_BLACK);
   if (x == 0) tft.setTextColor(ILI9341_YELLOW);
   else tft.setTextColor(ILI9341_WHITE);
   tft.println("TTL AND");
@@ -498,11 +500,7 @@ bool prev;
 void testingGates() {
   while (1) {
     if (digitalRead(OK) == LOW) {
-      lowBattery = 0;
-      if (digitalRead(LOWBAT) == LOW && lowBattery == 0 ) {
-        displayLowBat();
-        lowBattery++;
-      }
+      batteryCheck();
       digitalWrite(ZIFOFF, HIGH);
       delay(100);
       prev = test(numberGates);
@@ -526,6 +524,8 @@ void testingGates() {
         if (digitalRead(OK) == LOW)
           break;
         if (digitalRead(BACK) == LOW) {
+          tft.setCursor(0, 0);
+          tft.fillScreen(ILI9341_BLACK);
           highlight(highlighted);
           loop();
         }
@@ -541,6 +541,8 @@ void testingGates() {
       }
     }
     if (digitalRead(BACK) == LOW) {
+      tft.setCursor(0, 0);
+      tft.fillScreen(ILI9341_BLACK);
       highlight(highlighted);
       loop();
     }
@@ -552,7 +554,6 @@ void testingGates() {
 void testScreen(int testNum) {
   passed = 0;
   failed = 0;
-  short lowBattery;
   if (reset == 0) {
     tft.setCursor(0, 0);
     tft.fillScreen(ILI9341_BLACK);
@@ -589,14 +590,14 @@ void testScreen(int testNum) {
       testingGates();
       break;
 
-    case 4:
-      tft.println("Press OK to\ntest TTL\nInverter");
+    case 4://NOT
+      tft.println("Press OK to \ntest TTL Inverter");
       gateType = 0;
       TTLinputPins(gateType);
       testingGates();
       break;
 
-    case 5:
+    case 5://AND
 
       tft.println("Press OK to\ntest CMOS AND\nGate");
       gateType = 8;
@@ -604,31 +605,29 @@ void testScreen(int testNum) {
       testingGates();
       break;
 
-    case 6:
-      tft.println("Press OK to\ntest CMOS OR\nGate");
+    case 6://OR
+      tft.println("Press OK to test CMOS OR Gate");
       gateType = 14;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
-    case 7:
-
-      tft.println("Press OK to\ntest CMOS\nNAND Gate");
+    case 7://NAND
+      tft.println("Press OK to test CMOS NAND Gate");
       gateType = 7;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
-    case 8:
-
-      tft.println("Press OK to\ntest CMOS NOR\nGate");
+    case 8://NOR
+      tft.println("Press OK to test CMOS NOR Gate");
       gateType = 1;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
-    case 9:
-      tft.println("Press OK to\ntest CMOS\nInverter");
+    case 9://NOT
+      tft.println("Press OK to test CMOS Inverter");
       gateType = 0;
       CMOSinputPins(gateType);
       testingGates();
