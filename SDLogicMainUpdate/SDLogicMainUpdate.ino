@@ -575,14 +575,14 @@ void testScreen(int testNum) {
       testingGates();
       break;
 
-    case 4:
+    case 4://NOT
       tft.println("Press OK to \ntest TTL Inverter");
       gateType = 0;
       TTLinputPins(gateType);
       testingGates();
       break;
 
-    case 5:
+    case 5://AND
 
       tft.println("Press OK to test CMOS AND Gate");
       gateType = 8;
@@ -590,28 +590,28 @@ void testScreen(int testNum) {
       testingGates();
       break;
 
-    case 6:
+    case 6://OR
       tft.println("Press OK to test CMOS OR Gate");
       gateType = 14;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
-    case 7:
+    case 7://NAND
       tft.println("Press OK to test CMOS NAND Gate");
       gateType = 7;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
-    case 8:
+    case 8://NOR
       tft.println("Press OK to test CMOS NOR Gate");
       gateType = 1;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
-    case 9:
+    case 9://NOT
       tft.println("Press OK to test CMOS Inverter");
       gateType = 0;
       CMOSinputPins(gateType);
