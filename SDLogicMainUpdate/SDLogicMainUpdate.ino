@@ -32,6 +32,7 @@ const int BACK = 4;
 const int RESET = 3;
 const int LOWBAT = 15;
 const int ZIFOFF = 14;
+const int EXPANDER = 16;
 
 
 //UI Global variables
@@ -44,17 +45,17 @@ byte outPin[16];                   //array of output PINS to use
 
 //Input/output pins for different gates.
 //DO NOT REMOVE OR CHANGE
-byte NOTIN[] = {2, 4, 6, 9, 11, 13};        //NOT GATES Pin Assignement
-byte NOTOUT[] = {3, 5, 7, 8, 10, 12};
+byte NOTIN[] = {2, 4, 6, 10, 12, 14};        //NOT GATES Pin Assignement
+byte NOTOUT[] = {3, 5, 7, 9, 11, 13};
 
-byte TTLNORIN[] = {4, 7, 8, 11};               //TTL NOR  Pin Assignement
-byte TTLNOROUT[] = {2, 3, 5, 6, 9, 10, 12, 13};
+byte TTLNORIN[] = {4, 7, 9, 12};               //TTL NOR  Pin Assignement
+byte TTLNOROUT[] = {2, 3, 5, 6, 10, 11, 13, 14};
 
-byte TTLIN[] = {2, 5, 10, 13};               //REST OF TTL Pin Assignement
-byte TTLOUT[] = {3, 4, 6, 7, 8, 9, 11, 12};
+byte TTLIN[] = {2, 5, 11, 14};               //REST OF TTL Pin Assignement
+byte TTLOUT[] = {3, 4, 6, 7, 9, 10, 12, 13};
 
-byte CMOSIN[] = {4, 5, 10, 11};               //CMOS GATES  Pin Assignement
-byte CMOSOUT[] = {2, 3, 6, 7, 8, 9, 12, 13};
+byte CMOSIN[] = {4, 5, 11, 12};               //CMOS GATES  Pin Assignement
+byte CMOSOUT[] = {2, 3, 6, 7, 9, 10, 13, 14};
 
 void setup()
 //Initializing I2C, SPI, and Pins on Pro Trinket
@@ -80,9 +81,11 @@ void setup()
 
   //Relay control is an output
   pinMode(ZIFOFF, OUTPUT);
+  pinMode(EXPANDER, OUTPUT);
 
   //Turns off power to the ZIF Socket until testing begins
   digitalWrite(ZIFOFF, LOW);
+  digitalWrite(EXPANDER, HIGH);
 
   //Low battery indicator set to input
   pinMode(LOWBAT, INPUT);
@@ -179,18 +182,18 @@ void outputResult(bool result)
 {
 
   if (result == false) {
-    tft.setCursor(0, 0);
+    tft.setCursor(65, 150);
     tft.fillScreen(ILI9341_RED);
     tft.setTextSize(4);
     tft.setTextColor(ILI9341_BLACK);
     tft.println("FAIL");
   }
   else {
-    tft.setCursor(0, 0);
+    tft.setCursor(65, 150);
     tft.fillScreen(ILI9341_GREEN);
     tft.setTextSize(4);
     tft.setTextColor(ILI9341_BLACK);
-    tft.println("PASS!!!");
+    tft.println("PASS");
   }
   delay(1000);
 }
@@ -269,6 +272,7 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
     x[inc] = mcp.digitalRead(input1);                               //reading from the input pin
     increment(&values[0], len);
   }
+  zeroPins();
   byte retval = check(x, sizeof(x)) ? x[0] : -100;
 
   return retval;
@@ -298,6 +302,7 @@ byte check_Invert(byte output1, byte outpin1, byte input1)
     values++;
   }
 
+  zeroPins();
   byte retval = x[1] == x[0] ? x[0] : -100;
 
   return retval;
@@ -311,6 +316,15 @@ void resetPins()
     mcp.pullUp(x, HIGH);
     inPin[x] = 0;
     outPin[x] = 0;
+  }
+  return;
+}
+
+void zeroPins()
+//setting all ouputs to be 0
+{
+  for (byte x = 0; x < 16; x++) {
+    mcp.digitalWrite(x, 0);
   }
   return;
 }
@@ -474,6 +488,7 @@ void highlight(int x) {
   if (x == 9) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 8) tft.setTextColor(ILI9341_WHITE);
   tft.println("CMOS Inverter");
+  tft.setTextColor(ILI9341_WHITE);
   loop();
 }
 
