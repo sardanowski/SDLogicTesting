@@ -314,6 +314,7 @@ void resetPins()
   for (byte x = 0; x < 16; x++) {
     mcp.pinMode(x, OUTPUT);
     mcp.pullUp(x, HIGH);
+    mcp.digitalWrite(x, 0);
     inPin[x] = 0;
     outPin[x] = 0;
   }
@@ -460,34 +461,34 @@ void highlight(int x) {
   tft.setTextSize(3);
   if (x == 0) tft.setTextColor(ILI9341_YELLOW);
   else tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL AND");
+  tft.println("74LS08 TTL AND");
   if (x == 1) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 0) tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL OR");
+  tft.println("74LS32 TTL OR");
   if (x == 2) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 1) tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL NAND");
+  tft.println("74LS00 TTL NAND");
   if (x == 3) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 2) tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL NOR");
+  tft.println("74LS02 TTL NOR");
   if (x == 4) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 3) tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL Inverter");
+  tft.println("74LS04 TTL Inverter");
   if (x == 5) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 4) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS AND");
+  tft.println("CD4081 CMOS AND");
   if (x == 6) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 5) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS OR");
+  tft.println("CD4071 CMOS OR");
   if (x == 7) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 6) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS NAND");
+  tft.println("CD4011 CMOS NAND");
   if (x == 8) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 7) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS NOR");
+  tft.println("CD4001 CMOS NOR");
   if (x == 9) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 8) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS Inverter");
+  tft.println("CD4069 CMOS Inverter");
   tft.setTextColor(ILI9341_WHITE);
   loop();
 }
@@ -496,6 +497,50 @@ int passed = 0;
 int failed = 0;
 int reset = 0;
 bool prev;
+
+void displayGate(){
+  switch (highlighted) {
+    case 0:
+      tft.println("Press OK to \ntest 74LS08 TTL And Gate");
+      break;
+
+    case 1:
+      tft.println("Press OK to \ntest 74LS32 TTL OR Gate");
+      break;
+
+    case 2://NAND
+      tft.println("Press OK to \ntest 74LS00 TTL Nand Gate");
+      break;
+
+    case 3://NOR
+      tft.println("Press OK to \ntest 74LS02 TTL Nor Gate");
+      break;
+
+    case 4://NOT
+      tft.println("Press OK to \ntest 74LS04 TTL Inverter");
+      break;
+
+    case 5://AND
+      tft.println("Press OK to test CD4081 CMOS AND Gate");
+      break;
+
+    case 6://OR
+      tft.println("Press OK to test CD4071 CMOS OR Gate");
+      break;
+
+    case 7://NAND
+      tft.println("Press OK to test CD4011 CMOS NAND Gate");
+      break;
+
+    case 8://NOR
+      tft.println("Press OK to test CD4001 CMOS NOR Gate");
+      break;
+
+    case 9://NOT
+      tft.println("Press OK to test CD4069 CMOS Inverter");
+      break;
+  }
+}
 
 void testingGates() {
   while (1) {
@@ -519,6 +564,7 @@ void testingGates() {
         tft.println("Previous:\n Failed");
       if (prev == true)
         tft.println("Previous:\n Passed");
+      displayGate();
       digitalWrite(ZIFOFF, LOW);
       while (1) {
         if (digitalRead(OK) == LOW)
