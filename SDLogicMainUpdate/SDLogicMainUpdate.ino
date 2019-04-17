@@ -45,16 +45,16 @@ byte outPin[16];                   //array of output PINS to use
 
 //Input/output pins for different gates.
 //DO NOT REMOVE OR CHANGE
-byte NOTIN[] = {2, 4, 6, 10, 12, 14};        //NOT GATES Pin Assignement
+byte NOTIN[] = {2, 4, 6, 10, 12, 14};           //NOT GATES Pin Assignement
 byte NOTOUT[] = {3, 5, 7, 9, 11, 13};
 
-byte TTLNORIN[] = {4, 7, 9, 12};               //TTL NOR  Pin Assignement
+byte TTLNORIN[] = {4, 7, 9, 12};                //TTL NOR  Pin Assignement
 byte TTLNOROUT[] = {2, 3, 5, 6, 10, 11, 13, 14};
 
-byte TTLIN[] = {2, 5, 11, 14};               //REST OF TTL Pin Assignement
+byte TTLIN[] = {2, 5, 11, 14};                  //REST OF TTL Pin Assignement
 byte TTLOUT[] = {3, 4, 6, 7, 9, 10, 12, 13};
 
-byte CMOSIN[] = {4, 5, 11, 12};               //CMOS GATES  Pin Assignement
+byte CMOSIN[] = {4, 5, 11, 12};                 //CMOS GATES  Pin Assignement
 byte CMOSOUT[] = {2, 3, 6, 7, 9, 10, 13, 14};
 
 void setup()
@@ -92,6 +92,8 @@ void setup()
 
   //Low battery indicator
   digitalWrite(LOWBAT, LOW);
+
+  //Initialize Screen
   tft.setCursor(0, 0);
   tft.setTextSize(3);
   tft.fillScreen(ILI9341_BLACK);
@@ -101,7 +103,6 @@ void setup()
 void loop()
 //This is the main loop used to navigate the menu with the push buttons
 {
-
   while (1) {
     if (digitalRead(DOWN) == LOW) {  //When down pressed highlight the next gate, loop around if at bottom
       delay(100);
@@ -121,7 +122,7 @@ void loop()
       delay(100);
       testScreen(highlighted);
     }
-    if (batteryCheck()) {
+    if (batteryCheck()) {             //Check batterlyLow pin if low Charge, resume when charging/charged
       tft.fillScreen(ILI9341_BLACK);
       highlight(highlighted);
     }
@@ -131,7 +132,7 @@ void loop()
 bool batteryCheck()
 //Used to check if the battery is low or not
 {
-  if (digitalRead(LOWBAT) == LOW) {
+  if (digitalRead(LOWBAT) == LOW) {    //checking LowBat pin on PowerBooster if its low
     tft.fillScreen(ILI9341_RED);
     tft.setCursor(0, 0);
     tft.setTextSize(2);
@@ -143,6 +144,7 @@ bool batteryCheck()
   }
   return false;
 }
+
 bool check(byte ar[], int n)
 //checking if all the elements in the array are the same
 //This is used to check the array of results from fault checking
@@ -181,7 +183,6 @@ void increment(byte* A, byte len)
 void outputResult(bool result)
 //outputting the pass fail
 {
-
   if (result == false) {
     tft.setCursor(65, 150);
     tft.fillScreen(ILI9341_RED);
@@ -206,33 +207,34 @@ bool test(byte numberGates) {
   bool passFail;                     //pass or fail bool
   byte pinout1, pinout2, pinIn;      //pins to output on and input from
 
+  //Display that we are currently testing the gate
   tft.fillScreen(ILI9341_WHITE);
   tft.setCursor(0, 0);
   tft.setTextSize(3);
-  tft.setTextColor(ILI9341_BLACK); //code to look at testing results
+  tft.setTextColor(ILI9341_BLACK);
   tft.println("TESTING\nPLEASE WAIT..");
 
   for (gate = 0; gate < numberGates; gate++) {//looping through the number of gates to test
-    pinIn = inPin[gate];                      //seeting input pin
+    pinIn = inPin[gate];                      //setting input pin
     multNum = 1;                              //resetting variable after each gate itteration
     testresults = 0;                          //resetting variable after each gate itteration
 
-    if (!invert) { //testing Inverter more complicated
-      pinout1 = outPin[gate * 2];               //setting output pin 1
-      pinout2 = outPin[gate * 2 + 1];           //setting output pin 2
+    if (!invert) {//testing non-inverter gates
+      pinout1 = outPin[gate * 2];             //setting output pin 1
+      pinout2 = outPin[gate * 2 + 1];         //setting output pin 2
       for (out1 = 0; out1 <= 1; out1++) {                                    //looping through binary outputs
         for (out2 = 0; out2 <= 1; out2++) {                                  //looping through binary outputs
           byte checkValue = check_Gate(out1, out2, pinout1, pinout2, pinIn); //outputting binary values and reading input pin
           testresults = testresults + checkValue * multNum;                  //calculation each gates unique number
-          multNum = multNum * 2;                                            //double the num to generate unique test values.
+          multNum = multNum * 2;                                             //double the num to generate unique test values.
 
         }
       }
-    } else if (invert) {
-      pinout1 = outPin[gate];               //setting output pin 1
+    } else if (invert) {//testing inverter gates
+      pinout1 = outPin[gate];                //setting output pin 1
       for (out1 = 0; out1 <= 1; out1++) {
-        byte checkValue = check_Invert(out1, pinout1, pinIn);      //outputting binary values and reading input pin
-        testresults = testresults + checkValue * multNum;                  //calculation each gates unique number
+        byte checkValue = check_Invert(out1, pinout1, pinIn);                //outputting binary values and reading input pin
+        testresults = testresults + checkValue * multNum;                    //calculation each gates unique number
         multNum * 2;
       }
       testresults = testresults == 1 ? 0 : -1;
@@ -252,29 +254,27 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
   mcp.digitalWrite(outpin1, output1);                                   //writing output1 to outpin1
   mcp.digitalWrite(outpin2, output2);                                   //writing output2 to outpin2
 
-  byte x[4];
-  //check for shorts here complicated
-
-  byte values[2] = {0, 0};
+  byte x[4];              //array for fault checking
+  byte values[2] = {0, 0};//initial test values for other gates
   byte len = 2;
-  byte sendval = 0;
-  byte gate = 0;
-  byte inc = 0;
+  byte sendval = 0;       //incrementing values for sendint to pin sets of 2
+  byte pin = 0;           //pin number to assign value in Values
+  byte inc = 0;           //incrementing value to test all 4 possible combinations on each gate
   for (inc = 0; inc < sizeof(x); inc++) {
-    for (gate = 0; gate < numberGates * 2; gate++) { //looping through the number of gates to test
-      byte pinOut = outPin[gate];
+    for (pin = 0; pin < numberGates * 2; pin++) { //looping through the number of gates to test
+      byte pinOut = outPin[pin];                  //assigning pinout as an actual pin on the Expander
 
-      if (pinOut == outpin1 || pinOut == outpin2) continue;
+      if (pinOut == outpin1 || pinOut == outpin2) continue;            //Dont change values on gate we are actually testing
 
-      mcp.digitalWrite(pinOut, values[sendval++]);                                   //writing output1 to outpin1
-      if (sendval > 1) sendval = 0;
+      mcp.digitalWrite(pinOut, values[sendval++]);                     //writing output to pin
+      if (sendval > 1) sendval = 0;                                    //incrementing position of values[] and reset to 0
     }
-    delay(5);                                                           // Make sure the signal has time to propogate through the gate.
-    x[inc] = mcp.digitalRead(input1);                               //reading from the input pin
-    increment(&values[0], len);
+    delay(5);                                                          // Make sure the signal has time to propogate through the gate.
+    x[inc] = mcp.digitalRead(input1);                                  //reading from the input pin int array
+    increment(&values[0], len);                                        //increment array binary values
   }
-  zeroPins();
-  byte retval = check(x, sizeof(x)) ? x[0] : -100;
+  zeroPins();                                                          //zero all pins so no voltage present in ZIF
+  byte retval = check(x, sizeof(x)) ? x[0] : -100;                     //make sure all values in X are the same or fail.
 
   return retval;
 }
@@ -284,27 +284,26 @@ byte check_Invert(byte output1, byte outpin1, byte input1)
 {
   mcp.digitalWrite(outpin1, output1);                                   //writing output1 to outpin1
 
-  byte x[2];
-  //check for shorts here complicated
-  byte values = 0;
-  byte gate = 0;
-  byte inc = 0;
+  byte x[2];                                                            //array for fault checking
+  byte values = 0;                                                      //initial test values for other gates
+  byte gate = 0;                                                        //gate output to change
+  byte inc = 0;                                                         //itterator values for incrementing combinations
   for (inc = 0; inc < sizeof(x); inc++) {
-    for (gate = 0; gate < numberGates; gate++) {//looping through the number of gates to test
+    for (gate = 0; gate < numberGates; gate++) {     //looping through the number of gates to test
       byte pinOut = outPin[gate];
 
       if (pinOut == outpin1) continue;
 
-      mcp.digitalWrite(pinOut, values);                                   //writing output1 to outpin1
+      mcp.digitalWrite(pinOut, values);                                  //writing output1 to outpin1
 
     }
-    delay(5);                                                           // Make sure the signal has time to propogate through the gate.
-    x[inc] = mcp.digitalRead(input1);                               //reading from the input pin
+    delay(5);                                                            // Make sure the signal has time to propogate through the gate.
+    x[inc] = mcp.digitalRead(input1);                                    //reading from the input pin
     values++;
   }
 
-  zeroPins();
-  byte retval = x[1] == x[0] ? x[0] : -100;
+  zeroPins();                                                            //zero all outputs to turn off zif power
+  byte retval = x[1] == x[0] ? x[0] : -100;                              //check if output values are the same or fail.
 
   return retval;
 }
@@ -499,7 +498,7 @@ int failed = 0;
 int reset = 0;
 bool prev;
 
-void displayGate(){
+void displayGate() {
   switch (highlighted) {
     case 0:
       tft.println("Press OK to \ntest \n74LS08 AND");
@@ -570,6 +569,7 @@ void testingGates() {
       digitalWrite(ZIFOFF, LOW);
       while (1) {
         if (digitalRead(OK) == LOW)
+
           break;
         if (digitalRead(BACK) == LOW) {
           tft.setCursor(0, 0);
