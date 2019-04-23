@@ -1,3 +1,6 @@
+//=============================================================
+//Func: Functional Testing for logic devices 
+//=============================================================
 #include <Arduino.h>
 #include <Wire.h>
 #include "Adafruit_MCP23017.h"
@@ -56,7 +59,10 @@ byte TTLOUT[] = {3, 4, 6, 7, 9, 10, 12, 13};
 
 byte CMOSIN[] = {4, 5, 11, 12};               //CMOS GATES  Pin Assignement
 byte CMOSOUT[] = {2, 3, 6, 7, 9, 10, 13, 14};
-
+//=============================================================
+//Func: Setup is run every time the device is turned on
+//it initalizes all the settings
+//=============================================================
 void setup()
 //Initializing I2C, SPI, and Pins on Pro Trinket
 {
@@ -97,7 +103,9 @@ void setup()
   tft.fillScreen(ILI9341_BLACK);
   highlight(highlighted);
 }
-
+//=============================================================
+//Main function, runs endlessly and allows menu navigation
+//=============================================================
 void loop()
 //This is the main loop used to navigate the menu with the push buttons
 {
@@ -127,9 +135,10 @@ void loop()
     }
   }
 }
-
-bool batteryCheck()
+//=============================================================
 //Used to check if the battery is low or not
+//=============================================================
+bool batteryCheck()
 {
   if (digitalRead(LOWBAT) == LOW) {
     tft.fillScreen(ILI9341_RED);
@@ -143,9 +152,11 @@ bool batteryCheck()
   }
   return false;
 }
+//=============================================================
+//Checking if all the elements in the array are the same
+//used to check the array of results from fault checking
+//=============================================================
 bool check(byte ar[], int n)
-//checking if all the elements in the array are the same
-//This is used to check the array of results from fault checking
 {
   bool flag = 1;
 
@@ -177,9 +188,10 @@ void increment(byte* A, byte len)
   return;
 }
 
-
+//=============================================================
+//Outputs the pass/fail
+//=============================================================
 void outputResult(bool result)
-//outputting the pass fail
 {
 
   if (result == false) {
@@ -198,7 +210,10 @@ void outputResult(bool result)
   }
   delay(1000);
 }
-
+//=============================================================
+//Main test function, loops through each gate passing high/low
+//signals to test if the chip matches the truth tables
+//=============================================================
 bool test(byte numberGates) {
   byte out1, out2, testresults = 0;  //outx are loop index's, testresults is for checking return values
   byte multNum = 1;                  //number to multiply to truth table values to get unique test results
@@ -245,6 +260,9 @@ bool test(byte numberGates) {
   }
   return passFail;
 }
+//=============================================================
+//Checking what the output is when giving inputs
+//=============================================================
 
 byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte input1)
 //checking what the output is when giving inputs
@@ -278,7 +296,9 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
 
   return retval;
 }
-
+//=============================================================
+//Checking what the output is when giving inputs for inverters
+//=============================================================
 byte check_Invert(byte output1, byte outpin1, byte input1)
 //checking what the output is when giving inputs
 {
@@ -308,9 +328,10 @@ byte check_Invert(byte output1, byte outpin1, byte input1)
 
   return retval;
 }
-
-void resetPins()
+//=============================================================
 //resetting all pins to output and adding an internal pull up
+//=============================================================
+void resetPins()
 {
   for (byte x = 0; x < 16; x++) {
     mcp.pinMode(x, OUTPUT);
@@ -330,7 +351,9 @@ void zeroPins()
   }
   return;
 }
-
+//=============================================================
+//Assigns the mcp pin expander pins as inputs
+//=============================================================
 void assignInputs()
 {
   if (invert)
@@ -350,9 +373,10 @@ void assignInputs()
     mcp.pinMode(inPin[3], INPUT);
   }
 }
-
+//=============================================================
+//Sets input pins for TTL gates
+//=============================================================
 void TTLinputPins(byte gatevalue)
-//used to set the input pins for the gates
 {
   invert = 0;
   resetPins();
@@ -401,9 +425,10 @@ void TTLinputPins(byte gatevalue)
   numberGates = invert ? 6 : 4;
   return;
 }
-
+//=============================================================
+//Used to set input pins for CMOS gates
+//=============================================================
 void CMOSinputPins(byte gatevalue)
-//used to set the input pins for the gates
 {
   invert = 0;
   resetPins();
@@ -450,13 +475,15 @@ void CMOSinputPins(byte gatevalue)
   numberGates = invert ? 6 : 4;
   return;
 }
-
+//=============================================================
 // Function to copy 'len' elements from 'src' to 'dst'
+//=============================================================
 void copy(byte* src, byte* dst, int len) {
   memcpy(dst, src, sizeof(src[0])*len);
 }
-
+//=============================================================
 //Function to highlight text for UI
+//=============================================================
 void highlight(int x) {
   tft.setCursor(0, 0);
   tft.setTextSize(3);
@@ -498,7 +525,9 @@ int passed = 0;
 int failed = 0;
 int reset = 0;
 bool prev;
-
+//=============================================================
+//Display UI for gate testing
+//=============================================================
 void displayGate(){
   switch (highlighted) {
     case 0:
@@ -543,7 +572,10 @@ void displayGate(){
   }
   return;
 }
-
+//=============================================================
+//Testing UI. When each gate is being tested the code enters
+//this loop
+//=============================================================
 void testingGates() {
   while (1) {
     if (digitalRead(OK) == LOW) {
@@ -596,9 +628,10 @@ void testingGates() {
     }
   }
 }
-
+//=============================================================
 //Testing screen
 //Will display device being tested, number of passes, fails, and previous result
+//=============================================================
 void testScreen(int testNum) {
   passed = 0;
   failed = 0;
