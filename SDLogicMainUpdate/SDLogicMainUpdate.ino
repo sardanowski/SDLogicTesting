@@ -30,7 +30,7 @@ const int DOWN = 6;
 const int UP = 5;
 const int BACK = 4;
 const int RESET = 3;
-const int LOWBAT = 15;
+const int LOWBAT = 15;  
 const int ZIFOFF = 14;
 const int EXPANDER = 16;
 
