@@ -1,3 +1,6 @@
+//=============================================================
+//Func: Functional Testing for logic devices 
+//=============================================================
 #include <Arduino.h>
 #include <Wire.h>
 #include "Adafruit_MCP23017.h"
@@ -30,8 +33,9 @@ const int DOWN = 6;
 const int UP = 5;
 const int BACK = 4;
 const int RESET = 3;
-const int LOWBAT = 15;
+const int LOWBAT = 15;  
 const int ZIFOFF = 14;
+const int EXPANDER = 16;
 
 
 //UI Global variables
@@ -44,18 +48,21 @@ byte outPin[16];                   //array of output PINS to use
 
 //Input/output pins for different gates.
 //DO NOT REMOVE OR CHANGE
-byte NOTIN[] = {2, 4, 6, 9, 11, 13};        //NOT GATES Pin Assignement
-byte NOTOUT[] = {3, 5, 7, 8, 10, 12};
+byte NOTIN[] = {2, 4, 6, 10, 12, 14};        //NOT GATES Pin Assignement
+byte NOTOUT[] = {3, 5, 7, 9, 11, 13};
 
-byte TTLNORIN[] = {4, 7, 8, 11};               //TTL NOR  Pin Assignement
-byte TTLNOROUT[] = {2, 3, 5, 6, 9, 10, 12, 13};
+byte TTLNORIN[] = {4, 7, 9, 12};               //TTL NOR  Pin Assignement
+byte TTLNOROUT[] = {2, 3, 5, 6, 10, 11, 13, 14};
 
-byte TTLIN[] = {2, 5, 10, 13};               //REST OF TTL Pin Assignement
-byte TTLOUT[] = {3, 4, 6, 7, 8, 9, 11, 12};
+byte TTLIN[] = {2, 5, 11, 14};               //REST OF TTL Pin Assignement
+byte TTLOUT[] = {3, 4, 6, 7, 9, 10, 12, 13};
 
-byte CMOSIN[] = {4, 5, 10, 11};               //CMOS GATES  Pin Assignement
-byte CMOSOUT[] = {2, 3, 6, 7, 8, 9, 12, 13};
-
+byte CMOSIN[] = {4, 5, 11, 12};               //CMOS GATES  Pin Assignement
+byte CMOSOUT[] = {2, 3, 6, 7, 9, 10, 13, 14};
+//=============================================================
+//Func: Setup is run every time the device is turned on
+//it initalizes all the settings
+//=============================================================
 void setup()
 //Initializing I2C, SPI, and Pins on Pro Trinket
 {
@@ -81,9 +88,11 @@ void setup()
 
   //Relay control is an output
   pinMode(ZIFOFF, OUTPUT);
+  pinMode(EXPANDER, OUTPUT);
 
   //Turns off power to the ZIF Socket until testing begins
   digitalWrite(ZIFOFF, LOW);
+  digitalWrite(EXPANDER, HIGH);
 
   //Low battery indicator set to input
   pinMode(LOWBAT, INPUT);
@@ -95,7 +104,9 @@ void setup()
   tft.fillScreen(ILI9341_BLACK);
   highlight(highlighted);
 }
-
+//=============================================================
+//Main function, runs endlessly and allows menu navigation
+//=============================================================
 void loop()
 //This is the main loop used to navigate the menu with the push buttons
 {
@@ -120,15 +131,17 @@ void loop()
       testScreen(highlighted);
     }
     if (batteryCheck()) {
+      tft.fillScreen(ILI9341_BLACK);
       highlight(highlighted);
     }
     if ((digitalRead(RESET) == LOW) && (digitalRead(BACK) == LOW))
       displaycoders();
   }
 }
-
-bool batteryCheck()
+//=============================================================
 //Used to check if the battery is low or not
+//=============================================================
+bool batteryCheck()
 {
   if (digitalRead(LOWBAT) == LOW) {
     tft.fillScreen(ILI9341_RED);
@@ -137,14 +150,16 @@ bool batteryCheck()
     tft.println("LOW BATTERY");
     tft.println("PLEASE CHARGE");
     tft.println("TO RESUME TESTING");
-    while (digitalRead(LOWBAT) == HIGH) {};
+    while (digitalRead(LOWBAT) == LOW) {};
     return true;
   }
   return false;
 }
+//=============================================================
+//Checking if all the elements in the array are the same
+//used to check the array of results from fault checking
+//=============================================================
 bool check(byte ar[], int n)
-//checking if all the elements in the array are the same
-//This is used to check the array of results from fault checking
 {
   bool flag = 1;
 
@@ -176,28 +191,32 @@ void increment(byte* A, byte len)
   return;
 }
 
-
+//=============================================================
+//Outputs the pass/fail
+//=============================================================
 void outputResult(bool result)
-//outputting the pass fail
 {
 
   if (result == false) {
-    tft.setCursor(0, 0);
+    tft.setCursor(65, 150);
     tft.fillScreen(ILI9341_RED);
     tft.setTextSize(4);
     tft.setTextColor(ILI9341_BLACK);
     tft.println("FAIL");
   }
   else {
-    tft.setCursor(0, 0);
+    tft.setCursor(65, 150);
     tft.fillScreen(ILI9341_GREEN);
     tft.setTextSize(4);
     tft.setTextColor(ILI9341_BLACK);
-    tft.println("PASS!!!");
+    tft.println("PASS");
   }
   delay(1000);
 }
-
+//=============================================================
+//Main test function, loops through each gate passing high/low
+//signals to test if the chip matches the truth tables
+//=============================================================
 bool test(byte numberGates) {
   byte out1, out2, testresults = 0;  //outx are loop index's, testresults is for checking return values
   byte multNum = 1;                  //number to multiply to truth table values to get unique test results
@@ -244,6 +263,9 @@ bool test(byte numberGates) {
   }
   return passFail;
 }
+//=============================================================
+//Checking what the output is when giving inputs
+//=============================================================
 
 byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte input1)
 //checking what the output is when giving inputs
@@ -272,11 +294,14 @@ byte check_Gate(byte output1, byte output2, byte outpin1, byte outpin2, byte inp
     x[inc] = mcp.digitalRead(input1);                               //reading from the input pin
     increment(&values[0], len);
   }
+  zeroPins();
   byte retval = check(x, sizeof(x)) ? x[0] : -100;
 
   return retval;
 }
-
+//=============================================================
+//Checking what the output is when giving inputs for inverters
+//=============================================================
 byte check_Invert(byte output1, byte outpin1, byte input1)
 //checking what the output is when giving inputs
 {
@@ -301,23 +326,37 @@ byte check_Invert(byte output1, byte outpin1, byte input1)
     values++;
   }
 
+  zeroPins();
   byte retval = x[1] == x[0] ? x[0] : -100;
 
   return retval;
 }
-
-void resetPins()
+//=============================================================
 //resetting all pins to output and adding an internal pull up
+//=============================================================
+void resetPins()
 {
   for (byte x = 0; x < 16; x++) {
     mcp.pinMode(x, OUTPUT);
     mcp.pullUp(x, HIGH);
+    mcp.digitalWrite(x, 0);
     inPin[x] = 0;
     outPin[x] = 0;
   }
   return;
 }
 
+void zeroPins()
+//setting all ouputs to be 0
+{
+  for (byte x = 0; x < 16; x++) {
+    mcp.digitalWrite(x, 0);
+  }
+  return;
+}
+//=============================================================
+//Assigns the mcp pin expander pins as inputs
+//=============================================================
 void assignInputs()
 {
   if (invert)
@@ -337,9 +376,10 @@ void assignInputs()
     mcp.pinMode(inPin[3], INPUT);
   }
 }
-
+//=============================================================
+//Sets input pins for TTL gates
+//=============================================================
 void TTLinputPins(byte gatevalue)
-//used to set the input pins for the gates
 {
   invert = 0;
   resetPins();
@@ -388,9 +428,10 @@ void TTLinputPins(byte gatevalue)
   numberGates = invert ? 6 : 4;
   return;
 }
-
+//=============================================================
+//Used to set input pins for CMOS gates
+//=============================================================
 void CMOSinputPins(byte gatevalue)
-//used to set the input pins for the gates
 {
   invert = 0;
   resetPins();
@@ -445,49 +486,52 @@ void displaycoders() {
   tft.println("Coded by:\nStephen Ardanowski\nDerek Wing");
   tft.println("Board design by:\nAlexis Schroeder\nSpencer Banaszak");
   tft.println("Manual by:\nAbhilash Vinod");
-  delay(10000);
+  delay(1000);
   return;
 }
 
+//=============================================================
 // Function to copy 'len' elements from 'src' to 'dst'
+//=============================================================
 void copy(byte* src, byte* dst, int len) {
   memcpy(dst, src, sizeof(src[0])*len);
 }
-
+//=============================================================
 //Function to highlight text for UI
+//=============================================================
 void highlight(int x) {
   tft.setCursor(0, 0);
   tft.setTextSize(3);
   if (x == 0) tft.setTextColor(ILI9341_YELLOW);
   else tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL AND");
+  tft.println("74LS08 AND");
   if (x == 1) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 0) tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL OR");
+  tft.println("74LS32 OR");
   if (x == 2) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 1) tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL NAND");
+  tft.println("74LS00 NAND");
   if (x == 3) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 2) tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL NOR");
+  tft.println("74LS02 NOR");
   if (x == 4) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 3) tft.setTextColor(ILI9341_WHITE);
-  tft.println("TTL Inverter");
+  tft.println("74LS04 Invert");
   if (x == 5) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 4) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS AND");
+  tft.println("CD4081 AND");
   if (x == 6) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 5) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS OR");
+  tft.println("CD4071 OR");
   if (x == 7) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 6) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS NAND");
+  tft.println("CD4011 NAND");
   if (x == 8) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 7) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS NOR");
+  tft.println("CD4001 NOR");
   if (x == 9) tft.setTextColor(ILI9341_YELLOW);
   else if (x == 8) tft.setTextColor(ILI9341_WHITE);
-  tft.println("CMOS Inverter");
+  tft.println("CD4069 Invert");
   tft.setTextColor(ILI9341_WHITE);
   loop();
 }
@@ -496,7 +540,57 @@ int passed = 0;
 int failed = 0;
 int reset = 0;
 bool prev;
+//=============================================================
+//Display UI for gate testing
+//=============================================================
+void displayGate(){
+  switch (highlighted) {
+    case 0:
+      tft.println("Press OK to \ntest \n74LS08 AND");
+      break;
 
+    case 1:
+      tft.println("Press OK to \ntest \n74LS32 OR");
+      break;
+
+    case 2://NAND
+      tft.println("Press OK to \ntest \n74LS00 NAND");
+      break;
+
+    case 3://NOR
+      tft.println("Press OK to \ntest \n74LS02 NOR");
+      break;
+
+    case 4://NOT
+      tft.println("Press OK to \ntest \n74LS04 Invert");
+      break;
+
+    case 5://AND
+      tft.println("Press OK to \ntest \nCD4081 AND");
+      break;
+
+    case 6://OR
+      tft.println("Press OK to \ntest \nCD4071 OR");
+      break;
+
+    case 7://NAND
+      tft.println("Press OK to \ntest \nCD4011 NAND");
+      break;
+
+    case 8://NOR
+      tft.println("Press OK to \ntest \nCD4001 NOR");
+      break;
+
+    case 9://NOT
+      tft.println("Press OK to \ntest \nCD4069 Invert");
+      break;
+  }
+  return;
+}
+//=============================================================
+//Testing UI. When each gate is being tested the code enters
+//this loop
+//=============================================================
 void testingGates() {
   while (1) {
     if (digitalRead(OK) == LOW) {
@@ -516,9 +610,10 @@ void testingGates() {
       tft.printf("Passed: %d\n", passed);
       tft.printf("Failed: %d\n", failed);
       if (prev == false)
-        tft.println("Previous:\n Failed");
+        tft.println("Previous:\n Failed\n");
       if (prev == true)
-        tft.println("Previous:\n Passed");
+        tft.println("Previous:\n Passed\n");
+      displayGate();
       digitalWrite(ZIFOFF, LOW);
       while (1) {
         if (digitalRead(OK) == LOW)
@@ -548,9 +643,10 @@ void testingGates() {
     }
   }
 }
-
+//=============================================================
 //Testing screen
 //Will display device being tested, number of passes, fails, and previous result
+//=============================================================
 void testScreen(int testNum) {
   passed = 0;
   failed = 0;
@@ -563,71 +659,70 @@ void testScreen(int testNum) {
   //runs the proper testing procedure and display
   switch (testNum) {
     case 0:
-      tft.println("Press OK to \ntest TTL AND\nGate");
+      tft.println("Press OK to \ntest \n74LS08 AND");
       gateType = 8;
       TTLinputPins(gateType);
       testingGates();
       break;
 
     case 1:
-      tft.println("Press OK to \ntest TTL OR\nGate");
+      tft.println("Press OK to \ntest \n74LS32 OR");
       gateType = 14;
       TTLinputPins(gateType);
       testingGates();
       break;
 
     case 2://NAND
-      tft.println("Press OK to\ntest TTL NAND\nGate");
+      tft.println("Press OK to \ntest \n74LS00 NAND");
       gateType = 7;
       TTLinputPins(gateType);
       testingGates();
       break;
 
     case 3://NOR
-      tft.println("Press OK to\ntest TTL NOR\nGate");
+      tft.println("Press OK to \ntest \n74LS02 NOR");
       gateType = 1;
       TTLinputPins(gateType);
       testingGates();
       break;
 
     case 4://NOT
-      tft.println("Press OK to \ntest TTL Inverter");
+      tft.println("Press OK to \ntest \n74LS04 Invert");
       gateType = 0;
       TTLinputPins(gateType);
       testingGates();
       break;
 
     case 5://AND
-
-      tft.println("Press OK to\ntest CMOS AND\nGate");
+      tft.println("Press OK to \ntest \nCD4081 AND");
       gateType = 8;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
     case 6://OR
-      tft.println("Press OK to test CMOS OR Gate");
+      tft.println("Press OK to \ntest \nCD4071 OR");
       gateType = 14;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
     case 7://NAND
-      tft.println("Press OK to test CMOS NAND Gate");
+      tft.println("Press OK to \ntest \nCD4011 NAND");
       gateType = 7;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
     case 8://NOR
-      tft.println("Press OK to test CMOS NOR Gate");
+      tft.println("Press OK to \ntest \nCD4001 NOR");
       gateType = 1;
       CMOSinputPins(gateType);
       testingGates();
       break;
 
     case 9://NOT
-      tft.println("Press OK to test CMOS Inverter");
+      tft.println("Press OK to \ntest \nCD4069 Invert");
       gateType = 0;
       CMOSinputPins(gateType);
       testingGates();
