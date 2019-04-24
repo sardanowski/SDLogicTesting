@@ -487,6 +487,12 @@ void displaycoders() {
   tft.println("Board design by:\nAlexis Schroeder\nSpencer Banaszak");
   tft.println("Manual by:\nAbhilash Vinod");
   delay(1000);
+  while(1){
+    if (digitalRead(BACK) == LOW){
+      tft.fillScreen(ILI9341_BLACK);
+      loop();
+    }
+  }
   return;
 }
 
